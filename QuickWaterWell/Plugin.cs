@@ -8,46 +8,35 @@ namespace QuickWaterWell
     public class Plugin : BaseUnityPlugin
     {
         public static Harmony _harmony;
-        private static CommonReferences references;
+        private static CommonReferences _commonReferences;
 
 
         private void Awake()
         {
             // Plugin startup logic
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            references = CommonReferences.FindObjectOfType<CommonReferences>();
             
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
-            
-            
+        }
+
+        
+        [HarmonyPatch(typeof(CommonReferences), "Start")]
+        [HarmonyPostfix] //Has to be a postfix so that common ref is loaded 
+        private static void CommonReferenceSavingPostfix(CommonReferences __instance)
+        {
+            _commonReferences = __instance;
         }
         
         [HarmonyPatch(typeof(Well), "MouseUp")]
         [HarmonyPostfix]
         static void MouseUpPrefix(Well __instance)
         {
-            GameObject gameObject = FindObjectOfType<GameObject>();
-            if (gameObject == null)
-            {
-                gameObject = new GameObject();
-            }
+            bool repeat = PlayerInputs.GetPlayer(1).GetButton("RightMouseDetect");
+            var emptyBucket = _commonReferences?.bucketItem;
 
-            if (references == null)
-            {
-                references = FindObjectOfType<CommonReferences>();
-                if (references == null)
-                {
-                    references = gameObject
-                        .AddComponent<CommonReferences>();
-                }
-            }
+            if (!repeat || emptyBucket == null) return;
             
-            bool repeat = Input.GetMouseButton(1);
-            var emptyBucket = references?.bucketItem;
-
-            if (!repeat || emptyBucket == null || !__instance.IsAvailableByProximity(1)) return;
-            
-            while (PlayerInventory.GetPlayer(1).HasItem(emptyBucket))
+            while (__instance.IsAvailableByProximity(1) && PlayerInventory.GetPlayer(1).HasItem(emptyBucket))
             {
                 __instance.MouseUp(1);
             }

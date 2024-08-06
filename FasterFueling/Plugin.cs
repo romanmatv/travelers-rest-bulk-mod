@@ -1,6 +1,6 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
-using UnityEngine;
 
 namespace FasterFueling
 {
@@ -8,49 +8,30 @@ namespace FasterFueling
     public class Plugin : BaseUnityPlugin
     {
         public static Harmony _harmony;
-        private static CommonReferences references;
-
+        private static ConfigEntry<int> _fuelInputWithRightClick;
 
         private void Awake()
         {
             // Plugin startup logic
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            references = CommonReferences.FindObjectOfType<CommonReferences>();
-            
+            _fuelInputWithRightClick = Config.Bind("FuelInput", "input size", 5,
+                "Change the amount of fuel to insert when selecting fuel while holding RightMouse");
+
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
-            
-            
         }
-        
-        [HarmonyPatch(typeof(Well), "MouseUp")]
-        [HarmonyPostfix]
-        static void MouseUpPrefix(Well __instance)
+
+        [HarmonyPatch(typeof(FuelElementUI), "FuelClicked")]
+        [HarmonyPrefix]
+        static void FuelElementUIClick(FuelElementUI __instance)
         {
-            GameObject gameObject = FindObjectOfType<GameObject>();
-            if (gameObject == null)
-            {
-                gameObject = new GameObject();
-            }
+            if (__instance == null || PlayerInputs.GetPlayer(1).GetButton("RightMouseDetect") == false) return;
 
-            if (references == null)
-            {
-                references = FindObjectOfType<CommonReferences>();
-                if (references == null)
-                {
-                    references = gameObject
-                        .AddComponent<CommonReferences>();
-                }
-            }
-            
-            bool repeat = Input.GetMouseButton(1);
-            var emptyBucket = references?.bucketItem;
+            var slot = Traverse.Create(__instance)
+                .Field("slot")
+                .GetValue<Slot>();
 
-            if (!repeat || emptyBucket == null || !__instance.IsAvailableByProximity(1)) return;
-            
-            while (PlayerInventory.GetPlayer(1).HasItem(emptyBucket))
-            {
-                __instance.MouseUp(1);
-            }
+            for (var i = 1; i < _fuelInputWithRightClick.Value; i++)
+                __instance.OnSlotLeftClick(1, slot);
         }
     }
 }

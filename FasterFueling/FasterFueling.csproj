@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>rbk-tr-FasterFueling</AssemblyName>
     <Description>Mod to allow faster Fueling (X clicks)</Description>
-    <Version>0.0.0</Version>
+    <Version>0.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <BaseOutputPath>..\output</BaseOutputPath>
@@ -34,32 +34,5 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Content Include="obj\Debug\netstandard2.1\FasterFueling.AssemblyInfoInputs.cache" />
-    <Content Include="obj\Debug\netstandard2.1\FasterFueling.assets.cache" />
-    <Content Include="obj\Debug\netstandard2.1\FasterFueling.csproj.AssemblyReference.cache" />
-    <Content Include="obj\Debug\netstandard2.1\FasterFueling.csproj.CoreCompileInputs.cache" />
-    <Content Include="obj\Debug\netstandard2.1\FasterFueling.csproj.FileListAbsolute.txt" />
-    <Content Include="obj\Debug\netstandard2.1\FasterFueling.GeneratedMSBuildEditorConfig.editorconfig" />
-    <Content Include="obj\Debug\netstandard2.1\rbk-tr-FasterFueling.dll" />
-    <Content Include="obj\Debug\netstandard2.1\rbk-tr-FasterFueling.pdb" />
-    <Content Include="obj\Debug\netstandard2.1\restless-barkeep-travelers-rest-FasterFueling.dll" />
-    <Content Include="obj\Debug\netstandard2.1\restless-barkeep-travelers-rest-FasterFueling.pdb" />
-    <Content Include="obj\FasterFueling.csproj.nuget.dgspec.json" />
-    <Content Include="obj\FasterFueling.csproj.nuget.g.props" />
-    <Content Include="obj\FasterFueling.csproj.nuget.g.targets" />
-    <Content Include="obj\project.assets.json" />
-    <Content Include="obj\project.nuget.cache" />
-    <Content Include="obj\project.packagespec.json" />
-    <Content Include="obj\rider.project.model.nuget.info" />
-    <Content Include="obj\rider.project.restore.info" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Compile Include="obj\Debug\netstandard2.1\.NETStandard,Version=v2.1.AssemblyAttributes.cs" />
-    <Compile Include="obj\Debug\netstandard2.1\FasterFueling.AssemblyInfo.cs" />
-    <Compile Include="obj\Debug\netstandard2.1\PluginInfo.cs" />
   </ItemGroup>
 </Project>

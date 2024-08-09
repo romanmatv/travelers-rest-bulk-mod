@@ -60,6 +60,10 @@ namespace LargeBatchCooking
         [HarmonyPostfix]
         static void resetSlots(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
+            bool largerRecipes = PlayerInputs.GetPlayer(1).GetButton("RightMouseDetect");
+
+            if (largerRecipes != true || ___recipeSlots.Count == 0) return;
+
             foreach (var recipeSlot in ___recipeSlots)
             {
                 CacheRecipe original;
@@ -68,8 +72,6 @@ namespace LargeBatchCooking
                     // nothing to default back to
                     continue;
                 }
-                Log.LogInfo($"undo {recipeSlot.recipe.id.ToString()}: {original.outputAmount.ToString()}");
-
 
                 recipeSlot.recipe.id = original.id;
                 recipeSlot.recipe.time.mins = original.mins;
@@ -80,7 +82,7 @@ namespace LargeBatchCooking
                 recipeSlot.recipe.fuel = original.fuel;
                 recipeSlot.recipe.output.amount = original.outputAmount;
 
-                for (var j = 0; j < original.outputAmount; j++)
+                for (var j = 0; j < original.outputAmount && j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
                 {
                     recipeSlot.recipe.ingredientsNeeded[j].amount = original.ingredientCounts[j];
                 }

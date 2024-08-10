@@ -1,3 +1,7 @@
+# 0.0.2
+- Fixed controller support (configurable) now able to back out
+- fixed issue with different Item categories overlapping and breaking recipe reset.
+
 # 0.0.1
 - Added controller support (not configurable yet)
 - Added config options to skip time extension to help against recipes not rolling over

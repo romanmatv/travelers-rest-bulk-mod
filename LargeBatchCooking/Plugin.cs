@@ -3,6 +3,7 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using Rewired;
 using UnityEngine;
 
 namespace LargeBatchCooking
@@ -12,12 +13,43 @@ namespace LargeBatchCooking
     {
         private static ConfigEntry<int> _cookBatchSize;
         private static ConfigEntry<bool> _cookTimeMultiplier;
+        private static ConfigEntry<int> _modGamepadHotKey;
         public static Harmony _harmony;
 
         private static bool ModTrigger(int PlayerId)
         {
             return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
-                   || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction);
+                   || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
+                   || ReInput.players.GetPlayer(0).controllers.Joysticks.Any(Joystick => Joystick.GetButton(11))
+                   ;
+            
+            // ReInput. button 11 == left joystick idk
+            
+            /*
+             * L3 11
+             * R3 12
+             */
+            
+            /*
+             * button 0 a (4)
+             * button 1 b (5)
+             * button 2 x (6)
+             * button 3 y (7)
+             * button 4 l1 (10)
+             * button 5 r1 (11)
+             * l2(12) r2(13)
+             * button 6 select (14)
+             * button 7 start (13)
+             * button 8 talk (15)
+             * button 9 screenshot (16)
+             * button 10 windows (17)
+             * button 11 left stick(18)
+             * button 12 right stick(19)
+             * button 13 up
+             * button 14 right (21)
+             * button 15 down
+             * button 16 left (23)
+             */
         }
         
         private void Awake()
@@ -27,12 +59,14 @@ namespace LargeBatchCooking
                 "Change the amount of crafts to cook at once");
             _cookTimeMultiplier = Config.Bind("LargeBatch", "bool if increased time is desired", false,
                 "Enable Multiplier to change craft time, NOTE: Current the mod cannot keep recipe after day reset so extra materials are lost.");
+            _modGamepadHotKey = Config.Bind("LargeBatch", "keycode for button trigger", 11,
+                "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
         
 
-        private static Dictionary<int, CacheRecipe> _originalRecipes = new Dictionary<int, CacheRecipe>();
+        private static Dictionary<Category, Dictionary<int, CacheRecipe>> _recipeBooks = new Dictionary<Category, Dictionary<int, CacheRecipe>>();
 
 
         struct CacheRecipe
@@ -61,18 +95,40 @@ namespace LargeBatchCooking
             }
         }
 
+        private static Dictionary<int, CacheRecipe> pullRecipeBook(Category category)
+        {
+            _recipeBooks.TryGetValue(category, out var recipeBook);
+            if (recipeBook == null)
+            {
+                recipeBook = new Dictionary<int, CacheRecipe>();
+                _recipeBooks.Add(category, recipeBook);
+            }
+
+            return recipeBook;
+        }
+
+
         [HarmonyPatch(typeof(GameCraftingUI), "CloseUI")]
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         static void ResetSlots(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
             bool largerRecipes = ModTrigger(1);
 
-            if (largerRecipes != true || ___recipeSlots.Count == 0) return;
+            if (largerRecipes != true)
+            {
+                return;
+            }
 
+            if (___recipeSlots.Count == 0)
+            {
+                return;
+            }
+            
             foreach (var recipeSlot in ___recipeSlots)
             {
-                CacheRecipe original;
-                if (_originalRecipes.TryGetValue(recipeSlot.recipe.id, out original) != true)
+                var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);
+                
+                if (!recipeBook.TryGetValue(recipeSlot.recipe.id, out var original))
                 {
                     // nothing to default back to
                     continue;
@@ -106,10 +162,13 @@ namespace LargeBatchCooking
 
             foreach (var recipeSlot in ___recipeSlots)
             {
-                CacheRecipe original;
-                if (!_originalRecipes.TryGetValue(recipeSlot.recipe.id, out original))
-                    _originalRecipes.Add(recipeSlot.recipe.id, new CacheRecipe(recipeSlot.recipe));
+                var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);
                 
+                if (!recipeBook.TryGetValue(recipeSlot.recipe.id, out var original))
+                {
+                    recipeBook.Add(recipeSlot.recipe.id, new CacheRecipe(recipeSlot.recipe));
+                }
+
                 if (_cookTimeMultiplier.Value)
                 {
                     // can't keep recipe past day start not as big of an issue with EndlessLateNights though

@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 
 namespace EndlessLateNights
@@ -7,17 +8,30 @@ namespace EndlessLateNights
     public class Plugin : BaseUnityPlugin
     {
         public static Harmony _harmony;
-        private static int _hourToTriggerRestart = 11;
-        private static int _minToTriggerRestart = 30;
-        private static int _hoursToGoBack = 2;
-        private static WorldTime _worldTime = new();
-        private static bool _set;
+        private static ConfigEntry<int> _hourToTriggerRestart;
+        private static ConfigEntry<int> _minToTriggerRestart;
+        private static ConfigEntry<int> _hoursToGoBack;
+        private static WorldTime _worldTime;
 
-        // private static TimeUI timeUI;
+        private static WorldTime WorldTime
+        {
+            get
+            {
+                if (_worldTime == null) _worldTime = UnityEngine.Object.FindObjectOfType<WorldTime>();
+                return _worldTime;
+            }
+        }
 
         private void Awake()
         {
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+
+            _hourToTriggerRestart = Config.Bind("EndlessLateNights", "trigger hour", 2,
+                "Hour to trigger the time loop");
+            _minToTriggerRestart = Config.Bind("EndlessLateNights", "trigger min", 30,
+                "Min to trigger the time loop");
+            _hoursToGoBack = Config.Bind("EndlessLateNights", "hours to go back", 2,
+                "Hours to go backwards (WARNING: going back to the previous day can mess with things)");
             
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
@@ -27,24 +41,17 @@ namespace EndlessLateNights
         [HarmonyPrefix]
         static void EndlessLateNights()
         {
-            if (!_set)
-            {
-                _worldTime = TimeUI.FindObjectOfType<WorldTime>();
-                _set = true;
-            }
-
-            var gameDate = HarmonyLib.Traverse.Create(_worldTime)
+            var gameDate = HarmonyLib.Traverse.Create(WorldTime)
                     .Field("currentGameDate")
                     .GetValue<GameDate>();
             
             // if not trigger time continue
-            if (gameDate.hour != _hourToTriggerRestart || gameDate.min < _minToTriggerRestart) return;
+            if (gameDate.hour != _hourToTriggerRestart.Value || gameDate.min < _minToTriggerRestart.Value) return;
             
             // Todo: customize restart window
-            WorldTime.ChangeHour((gameDate.hour + GameDate.HOUR_IN_DAY - _hoursToGoBack) % GameDate.HOUR_IN_DAY);
-            WorldTime.forceSleepTime.hour += _hoursToGoBack;
-            UnityEngine.Debug.Log($"endless night going back {_hoursToGoBack} hours.");
-
+            WorldTime.ChangeHour((gameDate.hour + GameDate.HOUR_IN_DAY - _hoursToGoBack.Value) % GameDate.HOUR_IN_DAY);
+            WorldTime.forceSleepTime.hour += _hoursToGoBack.Value;
+            UnityEngine.Debug.Log($"endless night going back {_hoursToGoBack.Value.ToString()} hours.");
         }
     }
 }

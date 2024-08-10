@@ -2,7 +2,6 @@
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 
@@ -12,16 +11,22 @@ namespace LargeBatchCooking
     public class Plugin : BaseUnityPlugin
     {
         private static ConfigEntry<int> _cookBatchSize;
+        private static ConfigEntry<bool> _cookTimeMultiplier;
         public static Harmony _harmony;
-        internal static ManualLogSource Log;
 
+        private static bool ModTrigger(int PlayerId)
+        {
+            return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
+                   || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction);
+        }
         
         private void Awake()
         {
-            Log = Logger;
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             _cookBatchSize = Config.Bind("LargeBatch", "cook batch size", 5,
                 "Change the amount of crafts to cook at once");
+            _cookTimeMultiplier = Config.Bind("LargeBatch", "bool if increased time is desired", false,
+                "Enable Multiplier to change craft time, NOTE: Current the mod cannot keep recipe after day reset so extra materials are lost.");
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
@@ -32,35 +37,35 @@ namespace LargeBatchCooking
 
         struct CacheRecipe
         {
-            public int id;
-            public int mins;
-            public int hours;
-            public int days;
-            public int weeks;
-            public int years;
-            public int fuel;
-            public int outputAmount;
-            public List<int> ingredientCounts;
+            public int ID;
+            public int Mins;
+            public int Hours;
+            public int Days;
+            public int Weeks;
+            public int Years;
+            public int Fuel;
+            public int OutputAmount;
+            public List<int> IngredientCounts;
 
             public CacheRecipe(Recipe recipe)
             {
-                id = recipe.id;
-                mins = recipe.time.mins;
-                hours = recipe.time.hours;
-                days = recipe.time.days;
-                weeks = recipe.time.weeks;
-                years = recipe.time.years;
-                fuel = recipe.fuel;
-                outputAmount = recipe.output.amount;
-                ingredientCounts = recipe.ingredientsNeeded.Select(ingredient => ingredient.amount).ToList();
+                ID = recipe.id;
+                Mins = recipe.time.mins;
+                Hours = recipe.time.hours;
+                Days = recipe.time.days;
+                Weeks = recipe.time.weeks;
+                Years = recipe.time.years;
+                Fuel = recipe.fuel;
+                OutputAmount = recipe.output.amount;
+                IngredientCounts = recipe.ingredientsNeeded.Select(ingredient => ingredient.amount).ToList();
             }
         }
 
         [HarmonyPatch(typeof(GameCraftingUI), "CloseUI")]
         [HarmonyPostfix]
-        static void resetSlots(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
+        static void ResetSlots(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
-            bool largerRecipes = PlayerInputs.GetPlayer(1).GetButton("RightMouseDetect");
+            bool largerRecipes = ModTrigger(1);
 
             if (largerRecipes != true || ___recipeSlots.Count == 0) return;
 
@@ -73,26 +78,26 @@ namespace LargeBatchCooking
                     continue;
                 }
 
-                recipeSlot.recipe.id = original.id;
-                recipeSlot.recipe.time.mins = original.mins;
-                recipeSlot.recipe.time.hours = original.hours;
-                recipeSlot.recipe.time.days = original.days;
-                recipeSlot.recipe.time.weeks = original.weeks;
-                recipeSlot.recipe.time.years = original.years;
-                recipeSlot.recipe.fuel = original.fuel;
-                recipeSlot.recipe.output.amount = original.outputAmount;
+                recipeSlot.recipe.id = original.ID;
+                recipeSlot.recipe.time.mins = original.Mins;
+                recipeSlot.recipe.time.hours = original.Hours;
+                recipeSlot.recipe.time.days = original.Days;
+                recipeSlot.recipe.time.weeks = original.Weeks;
+                recipeSlot.recipe.time.years = original.Years;
+                recipeSlot.recipe.fuel = original.Fuel;
+                recipeSlot.recipe.output.amount = original.OutputAmount;
 
-                for (var j = 0; j < original.outputAmount && j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
+                for (var j = 0; j < original.OutputAmount && j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
                 {
-                    recipeSlot.recipe.ingredientsNeeded[j].amount = original.ingredientCounts[j];
+                    recipeSlot.recipe.ingredientsNeeded[j].amount = original.IngredientCounts[j];
                 }
             }
         }
         [HarmonyPatch(typeof(GameCraftingUI), "SetCrafter")]
         [HarmonyPostfix]
-        static void testSetCrafter(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
+        static void TestSetCrafter(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
-            bool largerRecipes = PlayerInputs.GetPlayer(1).GetButton("RightMouseDetect");
+            bool largerRecipes = ModTrigger(1);
 
             if (largerRecipes != true || ___recipeSlots.Count == 0) return;
             
@@ -105,17 +110,25 @@ namespace LargeBatchCooking
                 if (!_originalRecipes.TryGetValue(recipeSlot.recipe.id, out original))
                     _originalRecipes.Add(recipeSlot.recipe.id, new CacheRecipe(recipeSlot.recipe));
                 
-                var cookMins = recipeSlot.recipe.time.mins * cookBatchSize;
-                var cookHours = recipeSlot.recipe.time.hours * cookBatchSize + Mathf.FloorToInt(cookMins / GameDate.MIN_IN_HOUR);
-                var cookDays = recipeSlot.recipe.time.days * cookBatchSize + Mathf.FloorToInt(cookHours / GameDate.HOUR_IN_DAY);
-                var cookWeeks = recipeSlot.recipe.time.weeks * cookBatchSize + Mathf.FloorToInt(cookDays / GameDate.DAY_IN_WEEK);
-                var cookYears = recipeSlot.recipe.time.years * cookBatchSize + Mathf.FloorToInt(cookWeeks / (GameDate.WEEK_IN_SEASON * 4));
+                if (_cookTimeMultiplier.Value)
+                {
+                    // can't keep recipe past day start not as big of an issue with EndlessLateNights though
+                    var cookMins = recipeSlot.recipe.time.mins * cookBatchSize;
+                    var cookHours = recipeSlot.recipe.time.hours * cookBatchSize +
+                                    Mathf.FloorToInt(cookMins / GameDate.MIN_IN_HOUR);
+                    var cookDays = recipeSlot.recipe.time.days * cookBatchSize +
+                                   Mathf.FloorToInt(cookHours / GameDate.HOUR_IN_DAY);
+                    var cookWeeks = recipeSlot.recipe.time.weeks * cookBatchSize +
+                                    Mathf.FloorToInt(cookDays / GameDate.DAY_IN_WEEK);
+                    var cookYears = recipeSlot.recipe.time.years * cookBatchSize +
+                                    Mathf.FloorToInt(cookWeeks / (GameDate.WEEK_IN_SEASON * 4));
 
-                recipeSlot.recipe.time.mins = cookMins % GameDate.MIN_IN_HOUR;
-                recipeSlot.recipe.time.hours = cookHours % GameDate.HOUR_IN_DAY;
-                recipeSlot.recipe.time.days = cookDays % GameDate.DAY_IN_WEEK;
-                recipeSlot.recipe.time.weeks = cookWeeks % GameDate.WEEK_IN_SEASON;
-                recipeSlot.recipe.time.years = cookYears;
+                    recipeSlot.recipe.time.mins = cookMins % GameDate.MIN_IN_HOUR;
+                    recipeSlot.recipe.time.hours = cookHours % GameDate.HOUR_IN_DAY;
+                    recipeSlot.recipe.time.days = cookDays % GameDate.DAY_IN_WEEK;
+                    recipeSlot.recipe.time.weeks = cookWeeks % GameDate.WEEK_IN_SEASON;
+                    recipeSlot.recipe.time.years = cookYears;
+                }
 
                 for (var j = 0; j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
                 {

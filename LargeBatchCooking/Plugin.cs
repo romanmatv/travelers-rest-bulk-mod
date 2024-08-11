@@ -14,6 +14,7 @@ namespace LargeBatchCooking
         private static ConfigEntry<int> _cookBatchSize;
         private static ConfigEntry<bool> _cookTimeMultiplier;
         private static ConfigEntry<int> _modGamepadHotKey;
+        private static ConfigEntry<bool> _modIsTubaAssassin;
         public static Harmony _harmony;
 
         private static bool ModTrigger(int PlayerId)
@@ -61,6 +62,8 @@ namespace LargeBatchCooking
                 "Enable Multiplier to change craft time, NOTE: Current the mod cannot keep recipe after day reset so extra materials are lost.");
             _modGamepadHotKey = Config.Bind("LargeBatch", "keycode for button trigger", 11,
                 "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
+            _modIsTubaAssassin = Config.Bind("LargeBatch", "are you Tuba Assassin?", false,
+                "If Tuba Assassin use large batch cooking and find your reward awaiting you.");
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
@@ -159,7 +162,19 @@ namespace LargeBatchCooking
             
             var cookBatchSize = _cookBatchSize.Value;
 
-
+            if (_modIsTubaAssassin.Value && _recipeBooks.Count == 0)
+            {
+                var corn = ItemDatabaseAccessor.GetItem(3016);
+                if (corn != null)
+                {
+                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 50, false, false, 0);
+                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 50, false, false, 0);
+                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 1, false, false, 0);
+                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 1, false, false, 0);
+                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 1, false, false, 0);
+                }
+            }
+            
             foreach (var recipeSlot in ___recipeSlots)
             {
                 var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);

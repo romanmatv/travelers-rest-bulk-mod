@@ -1,3 +1,6 @@
+# 0.0.3
+- fixed configurable controller being ignored
+
 # 0.0.2
 - Fixed controller support (configurable) now able to back out
 - fixed issue with different Item categories overlapping and breaking recipe reset.

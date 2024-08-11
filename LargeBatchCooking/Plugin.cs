@@ -20,7 +20,7 @@ namespace LargeBatchCooking
         {
             return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
                    || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
-                   || ReInput.players.GetPlayer(0).controllers.Joysticks.Any(Joystick => Joystick.GetButton(11))
+                   || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks.Any(Joystick => Joystick.GetButton(_modGamepadHotKey.Value))
                    ;
             
             // ReInput. button 11 == left joystick idk

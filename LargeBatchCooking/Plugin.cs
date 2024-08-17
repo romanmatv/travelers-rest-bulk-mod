@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
@@ -15,22 +16,26 @@ namespace LargeBatchCooking
         private static ConfigEntry<bool> _cookTimeMultiplier;
         private static ConfigEntry<int> _modGamepadHotKey;
         private static ConfigEntry<bool> _modIsTubaAssassin;
+        private static ConfigEntry<bool> _allowCrazyLargeCrafts;
+
+        public static Crafter _Crafter;
         public static Harmony _harmony;
 
         private static bool ModTrigger(int PlayerId)
         {
             return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
                    || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
-                   || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks.Any(Joystick => Joystick.GetButton(_modGamepadHotKey.Value))
-                   ;
-            
+                   || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
+                       .Any(Joystick => Joystick.GetButton(_modGamepadHotKey.Value))
+                ;
+
             // ReInput. button 11 == left joystick idk
-            
+
             /*
              * L3 11
              * R3 12
              */
-            
+
             /*
              * button 0 a (4)
              * button 1 b (5)
@@ -52,7 +57,7 @@ namespace LargeBatchCooking
              * button 16 left (23)
              */
         }
-        
+
         private void Awake()
         {
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -64,12 +69,15 @@ namespace LargeBatchCooking
                 "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
             _modIsTubaAssassin = Config.Bind("LargeBatch", "are you Tuba Assassin?", false,
                 "If Tuba Assassin use large batch cooking and find your reward awaiting you.");
+            _allowCrazyLargeCrafts = Config.Bind("LargeBatch", "legacyMode", false,
+                "If you still want be have increasing stack sizes from reopening the crafter use this, must hold activation key (shift or controller) to reset recipe sizes but all bugs will be ignored.");
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
-        
 
-        private static Dictionary<Category, Dictionary<int, CacheRecipe>> _recipeBooks = new Dictionary<Category, Dictionary<int, CacheRecipe>>();
+
+        private static Dictionary<Category, Dictionary<int, CacheRecipe>> _recipeBooks =
+            new Dictionary<Category, Dictionary<int, CacheRecipe>>();
 
 
         struct CacheRecipe
@@ -110,27 +118,33 @@ namespace LargeBatchCooking
             return recipeBook;
         }
 
+        [HarmonyPatch(typeof(Crafter), "Awake")]
+        [HarmonyPostfix]
+        static void CrafterAwake(Crafter __instance)
+        {
+            __instance.multipleCrafting = true;
+            _Crafter = __instance;
+        }
 
         [HarmonyPatch(typeof(GameCraftingUI), "CloseUI")]
         [HarmonyPrefix]
         static void ResetSlots(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
-            bool largerRecipes = ModTrigger(1);
-
-            if (largerRecipes != true)
+            if (_allowCrazyLargeCrafts.Value)
             {
-                return;
+                if (ModTrigger(1) != true)
+                    return;
             }
 
             if (___recipeSlots.Count == 0)
             {
                 return;
             }
-            
+
             foreach (var recipeSlot in ___recipeSlots)
             {
                 var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);
-                
+
                 if (!recipeBook.TryGetValue(recipeSlot.recipe.id, out var original))
                 {
                     // nothing to default back to
@@ -145,6 +159,7 @@ namespace LargeBatchCooking
                 recipeSlot.recipe.time.years = original.Years;
                 recipeSlot.recipe.fuel = original.Fuel;
                 recipeSlot.recipe.output.amount = original.OutputAmount;
+                recipeSlot.enabled = true;
 
                 for (var j = 0; j < original.OutputAmount && j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
                 {
@@ -152,14 +167,15 @@ namespace LargeBatchCooking
                 }
             }
         }
+
         [HarmonyPatch(typeof(GameCraftingUI), "SetCrafter")]
         [HarmonyPostfix]
         static void TestSetCrafter(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
-            bool largerRecipes = ModTrigger(1);
+            var largerRecipes = ModTrigger(1);
 
             if (largerRecipes != true || ___recipeSlots.Count == 0) return;
-            
+
             var cookBatchSize = _cookBatchSize.Value;
 
             if (_modIsTubaAssassin.Value && _recipeBooks.Count == 0)

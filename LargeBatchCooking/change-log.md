@@ -1,3 +1,7 @@
+# 0.0.4
+- inorder to fix endless chain of bugs, only one multiplication is applied and is un-applied on crafter exit
+- in place of multiple large crafters all crafter now support multi-craft so more than just one recipe "can" be applied
+
 # 0.0.3
 - fixed configurable controller being ignored
 

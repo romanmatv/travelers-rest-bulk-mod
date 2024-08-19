@@ -24,9 +24,7 @@ namespace SkipFishingMod
 
 
         //////////////////////////////////////////////////////////////////
-        ///  Instant Catch
-
-
+        ///  Instant Catch (by DrStalker)
         [HarmonyPatch(typeof(FishingUI), "LateUpdate")]
         [HarmonyPrefix]
         static bool LateUpdatePrefix(FishingUI __instance)

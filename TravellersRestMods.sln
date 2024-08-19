@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LargeBatchCooking", "LargeB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FishingChanges", "FishingChanges\FishingChanges.csproj", "{39EF14E6-AB22-43BC-B155-779712499514}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterTools", "BetterTools\BetterTools.csproj", "{8F38AD19-B833-48C4-AA49-26F542137468}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,5 +52,9 @@ Global
 		{39EF14E6-AB22-43BC-B155-779712499514}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39EF14E6-AB22-43BC-B155-779712499514}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39EF14E6-AB22-43BC-B155-779712499514}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F38AD19-B833-48C4-AA49-26F542137468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F38AD19-B833-48C4-AA49-26F542137468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F38AD19-B833-48C4-AA49-26F542137468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F38AD19-B833-48C4-AA49-26F542137468}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

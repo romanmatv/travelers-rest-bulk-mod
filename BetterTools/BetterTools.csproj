@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>rbk-tr-BetterTools</AssemblyName>
     <Description>Mod to have base tools scale with Rep</Description>
-    <Version>0.0.0</Version>
+    <Version>0.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <BaseOutputPath>..\output</BaseOutputPath>
     <LangVersion>latest</LangVersion>

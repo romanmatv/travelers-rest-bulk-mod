@@ -24,9 +24,6 @@ namespace BetterTools
             _maxLevel = Config.Bind("BetterTools", "maxLevel", 40, "Level to 1 hit everything.");
             _levelPerExtraRow = Config.Bind("BetterTools", "levelsPerWaterRow", 10, "Every X levels add a new 3x row of watering.");
 
-            //WateringCan
-            // Plugin startup logic
-            DroppedItemFollowPlayer
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 

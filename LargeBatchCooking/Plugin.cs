@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
@@ -15,10 +16,8 @@ namespace LargeBatchCooking
         private static ConfigEntry<int> _cookBatchSize;
         private static ConfigEntry<bool> _cookTimeMultiplier;
         private static ConfigEntry<int> _modGamepadHotKey;
-        private static ConfigEntry<bool> _modIsTubaAssassin;
-        private static ConfigEntry<bool> _allowCrazyLargeCrafts;
 
-        public static Crafter _Crafter;
+        // ReSharper disable once NotAccessedField.Global InconsistentNaming
         public static Harmony _harmony;
 
         private static bool ModTrigger(int PlayerId)
@@ -61,26 +60,18 @@ namespace LargeBatchCooking
         private void Awake()
         {
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            _cookBatchSize = Config.Bind("LargeBatch", "cook batch size", 5,
-                "Change the amount of crafts to cook at once");
+            _cookBatchSize = Config.Bind("LargeBatch", "multiplierSize", 5,
+                "Change the amount of crafts to cook per modClick");
             _cookTimeMultiplier = Config.Bind("LargeBatch", "bool if increased time is desired", false,
                 "Enable Multiplier to change craft time, NOTE: Current the mod cannot keep recipe after day reset so extra materials are lost.");
             _modGamepadHotKey = Config.Bind("LargeBatch", "keycode for button trigger", 11,
                 "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
-            _modIsTubaAssassin = Config.Bind("LargeBatch", "are you Tuba Assassin?", false,
-                "If Tuba Assassin use large batch cooking and find your reward awaiting you.");
-            _allowCrazyLargeCrafts = Config.Bind("LargeBatch", "legacyMode", false,
-                "If you still want be have increasing stack sizes from reopening the crafter use this, must hold activation key (shift or controller) to reset recipe sizes but all bugs will be ignored.");
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
 
-        private static Dictionary<Category, Dictionary<int, CacheRecipe>> _recipeBooks =
-            new Dictionary<Category, Dictionary<int, CacheRecipe>>();
-
-
-        struct CacheRecipe
+        private struct CacheRecipe
         {
             public int ID;
             public int Mins;
@@ -90,7 +81,7 @@ namespace LargeBatchCooking
             public int Years;
             public int Fuel;
             public int OutputAmount;
-            public List<int> IngredientCounts;
+            public List<Tuple<int, int>> IngredientRequirement;
 
             public CacheRecipe(Recipe recipe)
             {
@@ -102,20 +93,41 @@ namespace LargeBatchCooking
                 Years = recipe.time.years;
                 Fuel = recipe.fuel;
                 OutputAmount = recipe.output.amount;
-                IngredientCounts = recipe.ingredientsNeeded.Select(ingredient => ingredient.amount).ToList();
+                IngredientRequirement = recipe.ingredientsNeeded
+                    .Select(ingredient => Tuple.Create(ingredient.item.GetHashCode(), ingredient.amount)).ToList();
             }
         }
 
-        private static Dictionary<int, CacheRecipe> pullRecipeBook(Category category)
-        {
-            _recipeBooks.TryGetValue(category, out var recipeBook);
-            if (recipeBook == null)
-            {
-                recipeBook = new Dictionary<int, CacheRecipe>();
-                _recipeBooks.Add(category, recipeBook);
-            }
+        private static readonly Dictionary<Recipe.RecipeGroup, Dictionary<int, CacheRecipe>> RecipeCache =
+            new();
 
-            return recipeBook;
+        [HarmonyPatch(typeof(RecipeDatabaseAccessor), "Awake")]
+        [HarmonyPostfix]
+        // ReSharper disable once InconsistentNaming
+        public static void SaveBaseRecipes(RecipeDatabaseAccessor __instance, RecipeDatabase ___recipeDatabaseSO)
+        {
+            Console.Out.WriteLine("'HERE'");
+            foreach (var recipe in ___recipeDatabaseSO.recipes)
+            {
+                AddRecipe(recipe);
+            }
+        }
+
+        private static void AddRecipe(Recipe recipe)
+        {
+            if (!RecipeCache.ContainsKey(recipe.recipeGroup))
+                RecipeCache.Add(recipe.recipeGroup, new());
+
+            if (!RecipeCache[recipe.recipeGroup].ContainsKey(recipe.id))
+                RecipeCache[recipe.recipeGroup].Add(recipe.id, new CacheRecipe(recipe));
+        }
+
+        static bool GetOriginal(Recipe recipe, out CacheRecipe original)
+        {
+            original = default;
+
+            return recipe != null && RecipeCache.TryGetValue(recipe.recipeGroup, out var recipeGroupDict) &&
+                   recipeGroupDict.TryGetValue(recipe.id, out original);
         }
 
         [HarmonyPatch(typeof(Crafter), "Awake")]
@@ -123,94 +135,106 @@ namespace LargeBatchCooking
         static void CrafterAwake(Crafter __instance)
         {
             __instance.multipleCrafting = true;
-            _Crafter = __instance;
+        }
+
+        [HarmonyPatch(typeof(RandomOrderQuest), nameof(RandomOrderQuest.CreateQuest))]
+        [HarmonyPrefix]
+        static void CheckQuestsNotBroken(RandomOrderQuest __instance, ref RandomOrderQuestInfo __0)
+        {
+            ResetRecipe(__0.item.recipe);
+            __0.requiredAmount = __0.item.recipe.output.amount;
+        }
+
+        [HarmonyPatch(typeof(Crafter), nameof(Crafter.GetAreaBonifications))]
+        [HarmonyPostfix]
+        static void AdjustAreaBonifications(Crafter __instance, ref float __result, AreaBonificationType __0,
+            Recipe __1)
+        {
+            if (__0 == AreaBonificationType.TimeReduction) return;
+
+            if (!GetOriginal(__1, out var original)) return;
+
+            var recipeMultiplier = (float)Math.Round((float)__1.output.amount / original.OutputAmount);
+            if (recipeMultiplier <= 1) return;
+
+            __result *= recipeMultiplier;
         }
 
         [HarmonyPatch(typeof(GameCraftingUI), "CloseUI")]
         [HarmonyPrefix]
         static void ResetSlots(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
-            if (_allowCrazyLargeCrafts.Value)
-            {
-                if (ModTrigger(1) != true)
-                    return;
-            }
-
-            if (___recipeSlots.Count == 0)
-            {
-                return;
-            }
+            if (ModTrigger(1) || ___recipeSlots.Count == 0) return;
 
             foreach (var recipeSlot in ___recipeSlots)
+                ResetRecipe(recipeSlot.recipe);
+        }
+
+        private static void ResetRecipe(Recipe recipe)
+        {
+            if (!GetOriginal(recipe, out var original)) return;
+
+            recipe.id = original.ID;
+            recipe.time.mins = original.Mins;
+            recipe.time.hours = original.Hours;
+            recipe.time.days = original.Days;
+            recipe.time.weeks = original.Weeks;
+            recipe.time.years = original.Years;
+            recipe.fuel = original.Fuel;
+            recipe.output.amount = original.OutputAmount;
+
+            for (var index = 0; index < recipe.ingredientsNeeded.Length; index++)
             {
-                var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);
-
-                if (!recipeBook.TryGetValue(recipeSlot.recipe.id, out var original))
-                {
-                    // nothing to default back to
-                    continue;
-                }
-
-                recipeSlot.recipe.id = original.ID;
-                recipeSlot.recipe.time.mins = original.Mins;
-                recipeSlot.recipe.time.hours = original.Hours;
-                recipeSlot.recipe.time.days = original.Days;
-                recipeSlot.recipe.time.weeks = original.Weeks;
-                recipeSlot.recipe.time.years = original.Years;
-                recipeSlot.recipe.fuel = original.Fuel;
-                recipeSlot.recipe.output.amount = original.OutputAmount;
-                recipeSlot.enabled = true;
-
-                for (var j = 0; j < original.OutputAmount && j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
-                {
-                    recipeSlot.recipe.ingredientsNeeded[j].amount = original.IngredientCounts[j];
-                }
+                var neededIngredientId = recipe.ingredientsNeeded[index].item.GetHashCode();
+                var originalReq = original.IngredientRequirement.Find(ingredientReq =>
+                    ingredientReq.Item1 == neededIngredientId);
+                recipe.ingredientsNeeded[index].amount = originalReq.Item2;
             }
         }
 
         [HarmonyPatch(typeof(GameCraftingUI), "SetCrafter")]
         [HarmonyPostfix]
+        [SuppressMessage("ReSharper", "PossibleLossOfFraction")]
         static void TestSetCrafter(GameCraftingUI __instance, ref List<RecipeSlot> ___recipeSlots)
         {
             var largerRecipes = ModTrigger(1);
 
             if (largerRecipes != true || ___recipeSlots.Count == 0) return;
 
-            var cookBatchSize = _cookBatchSize.Value;
-
-            if (_modIsTubaAssassin.Value && _recipeBooks.Count == 0)
-            {
-                var corn = ItemDatabaseAccessor.GetItem(3016);
-                if (corn != null)
-                {
-                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 50, false, false, 0);
-                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 50, false, false, 0);
-                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 1, false, false, 0);
-                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 1, false, false, 0);
-                    DroppedItem.SpawnDroppedItem(new Vector3(9f, -13f, 0.0f), corn, 1, false, false, 0);
-                }
-            }
-            
             foreach (var recipeSlot in ___recipeSlots)
             {
-                var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);
-                
-                if (!recipeBook.TryGetValue(recipeSlot.recipe.id, out var original))
-                {
-                    recipeBook.Add(recipeSlot.recipe.id, new CacheRecipe(recipeSlot.recipe));
-                }
+                var cookBatchSize = _cookBatchSize.Value;
 
+                if (!GetOriginal(recipeSlot.recipe, out var original))
+                {
+                    Console.Out.WriteLine(
+                        $"{recipeSlot.recipe.name} not cached {recipeSlot.recipe.recipeGroup.ToString()}");
+                    AddRecipe(recipeSlot.recipe);
+
+                    continue;
+                }
+                // var recipeBook = pullRecipeBook(recipeSlot.recipe.output.item.category);
+                //
+                // if (!recipeBook.TryGetValue(recipeSlot.recipe.id, out var original))
+                // {
+                //     recipeBook.Add(recipeSlot.recipe.id, new CacheRecipe(recipeSlot.recipe));
+                // }
+
+
+                if (recipeSlot.recipe.output.amount == original.OutputAmount)
+                    cookBatchSize -= 1;
+                
                 if (_cookTimeMultiplier.Value)
                 {
                     // can't keep recipe past day start not as big of an issue with EndlessLateNights though
-                    var cookMins = recipeSlot.recipe.time.mins * cookBatchSize;
-                    var cookHours = recipeSlot.recipe.time.hours * cookBatchSize +
+                    var cookMins = recipeSlot.recipe.time.mins + original.Mins * cookBatchSize;
+                    var cookHours = recipeSlot.recipe.time.hours + original.Hours * cookBatchSize +
                                     Mathf.FloorToInt(cookMins / GameDate.MIN_IN_HOUR);
-                    var cookDays = recipeSlot.recipe.time.days * cookBatchSize +
+                    var cookDays = recipeSlot.recipe.time.days + original.Days * cookBatchSize +
                                    Mathf.FloorToInt(cookHours / GameDate.HOUR_IN_DAY);
-                    var cookWeeks = recipeSlot.recipe.time.weeks * cookBatchSize +
+                    var cookWeeks = recipeSlot.recipe.time.weeks + original.Weeks * cookBatchSize +
                                     Mathf.FloorToInt(cookDays / GameDate.DAY_IN_WEEK);
-                    var cookYears = recipeSlot.recipe.time.years * cookBatchSize +
+                    var cookYears = recipeSlot.recipe.time.years + original.Years * cookBatchSize +
                                     Mathf.FloorToInt(cookWeeks / (GameDate.WEEK_IN_SEASON * 4));
 
                     recipeSlot.recipe.time.mins = cookMins % GameDate.MIN_IN_HOUR;
@@ -220,13 +244,21 @@ namespace LargeBatchCooking
                     recipeSlot.recipe.time.years = cookYears;
                 }
 
-                for (var j = 0; j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
+                for (var index = 0; index < recipeSlot.recipe.ingredientsNeeded.Length; index++)
                 {
-                    recipeSlot.recipe.ingredientsNeeded[j].amount *= cookBatchSize;
+                    var neededIngredientId = recipeSlot.recipe.ingredientsNeeded[index].item.GetHashCode();
+                    var originalReq = original.IngredientRequirement.Find(ingredientReq =>
+                        ingredientReq.Item1 == neededIngredientId);
+                    recipeSlot.recipe.ingredientsNeeded[index].amount += originalReq.Item2 * cookBatchSize;
                 }
+                
+                // for (var j = 0; j < recipeSlot.recipe.ingredientsNeeded.Length; j++)
+                // {
+                    // recipeSlot.recipe.ingredientsNeeded[j].amount += original.cookBatchSize;
+                // }
 
-                recipeSlot.recipe.fuel *= cookBatchSize;
-                recipeSlot.recipe.output.amount *= cookBatchSize;
+                recipeSlot.recipe.fuel += original.Fuel * cookBatchSize;
+                recipeSlot.recipe.output.amount += original.OutputAmount * cookBatchSize;
             }
         }
     }

@@ -106,7 +106,6 @@ namespace LargeBatchCooking
         // ReSharper disable once InconsistentNaming
         public static void SaveBaseRecipes(RecipeDatabaseAccessor __instance, RecipeDatabase ___recipeDatabaseSO)
         {
-            Console.Out.WriteLine("'HERE'");
             foreach (var recipe in ___recipeDatabaseSO.recipes)
             {
                 AddRecipe(recipe);

@@ -19,21 +19,9 @@ namespace BetterTools
 
         private static int[] _toolIdList;
 
-        // private static byte[] _toolTextureBytesByFile;
-
-        // public static byte[] toolTextureBytesByFile
-        // {
-        //     get
-        //     {
-        //         if (_toolTextureBytesByFile == null)
-        //             _toolTextureBytesByFile = File.ReadAllBytes("BepInEx/plugins/rbk-tr-Assets/Textures/TieredTools.png");
-        //         return _toolTextureBytesByFile;
-        //     }
-        // }
-
         private static byte[] _toolTextureBytes;
 
-        public static byte[] toolTextureSheetBytes
+        private static byte[] ToolTextureSheetBytes
         {
             get
             {
@@ -50,9 +38,6 @@ namespace BetterTools
 
         private void Awake()
         {
-            //PlayerController.GetPlayer(1)._currentLocation;
-            //PlayerController.TeleportPlayer(1, new Vector3(23.71f,-18.39f,0f), Location.Road);
-            //PlayerController.TeleportPlayer(1, new Vector3(-394.78f, 400.93f, 0.00f), Location.Quarry);
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             _lessenWorkByLevel = Config.Bind("BetterTools", "isActive", true,
                 "Flag enabling/disabling tool improvement by level");
@@ -73,11 +58,11 @@ namespace BetterTools
         private enum Tier
         {
             Copper = 0,
-            Iron = 32,
-            Steel = 64,
+            Iron = 1,
+            Steel = 2,
         }
 
-        static void textureChange(Tool tool)
+        private static void TextureChange(Tool tool)
         {
             var x = tool.GetHashCode() switch
             {
@@ -114,13 +99,12 @@ namespace BetterTools
             {
                 filterMode = FilterMode.Point,
                 wrapMode = TextureWrapMode.Clamp,
-                
             };
-            tex.LoadImage(toolTextureSheetBytes);
-            tool.icon = Sprite.Create(tex, new Rect(x * 32, (int)tier, 32, 32), new Vector2(0f, 0f));
+            tex.LoadImage(ToolTextureSheetBytes);
+            tool.icon = Sprite.Create(tex, new Rect(x * 32, ((int)tier * 32), 32, 32), new Vector2(0f, 0f));
         }
 
-        static int Reduction(int workAmount, int level)
+        public static int Reduction(int workAmount, int level)
         {
             var result = workAmount * (1f - (float)level / _maxLevel.Value);
             return Mathf.Max(1, (int)Math.Floor(result));
@@ -128,7 +112,7 @@ namespace BetterTools
 
         [HarmonyPatch(typeof(WateringCan), nameof(WateringCan.Action))]
         [HarmonyPostfix]
-        static void BetterWatering(WateringCan __instance)
+        private static void BetterWatering(WateringCan __instance)
         {
             var repLevel = TavernReputation.GetMilestone();
 
@@ -136,7 +120,7 @@ namespace BetterTools
             var tileMod = facing is Direction.Left or Direction.Down ? -.5 : .5;
 
             var extraRows = (int)Math.Floor((float)repLevel / _levelPerExtraRow.Value);
-            for (int i = 1; i <= extraRows; i++)
+            for (var i = 1; i <= extraRows; i++)
             {
                 foreach (var soil in Traverse.Create(__instance).Field("fertileSoilsArray").GetValue<FertileSoil[]>())
                 {
@@ -156,7 +140,6 @@ namespace BetterTools
             }
         }
 
-        // for now weaken on day start
         [HarmonyPatch(typeof(Tree), "Awake")]
         [HarmonyPostfix]
         static void WeakenTrees(Tree __instance, ref int ___workAmount)
@@ -185,18 +168,27 @@ namespace BetterTools
         [HarmonyPostfix]
         static void ToolUpdates(SaveUI __instance, SaveSlotUI ___lastSlotSelected)
         {
+            // SaveTexture(tool.icon?.texture, $"{tool.name}_{tool.bodyPart}_iconTexture");
+            // SaveTexture(tool.sprite?.texture, tool.name + "_spriteTexture");
+            // SaveTexture(tool.skin?.icon?.texture, tool.name + "_skin_iconTexture");
+            // SaveTexture(tool.skin?.sprites?[0].texture, tool.name + "_skin_spriteTexture");
+                
+            // TODO: Char
+            // CharacterAnimation, CharacterAnimator, CharacterController, CharacterSprite, CharacterSpritesDatabase;
+            // CharacterSprite cs;
+            // cs.
             // Go through all items and apply tool changes
             foreach (var toolId in _toolIdList)
             {
-                var tool = ItemDatabaseAccessor.GetItem(toolId);
-
+                var tool = (Tool) ItemDatabaseAccessor.GetItem(toolId);
+                
                 var inBag = PlayerInventory.GetPlayer(1)
                     .GetSlotsWithItem(tool, null, false, -1);
                 var onHand = ActionBarInventory.GetPlayer(1)
                     .GetSlotsWithItem(tool, null, false, -1);
                 var onIce = BuildingInventory.GetInstance()
                     .GetSlotsWithItem(tool, null, false, -1);
-
+                
                 ApplyTextureChanges(inBag);
                 ApplyTextureChanges(onHand);
                 ApplyTextureChanges(onIce);
@@ -207,7 +199,7 @@ namespace BetterTools
         {
             foreach (var slot in itemInstances)
             {
-                textureChange(Traverse.Create(slot.itemInstance).Field("item").GetValue<Tool>());
+                TextureChange(Traverse.Create(slot.itemInstance).Field("item").GetValue<Tool>());
             }
         }
     }

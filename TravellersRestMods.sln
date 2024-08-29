@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FishingChanges", "FishingCh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterTools", "BetterTools\BetterTools.csproj", "{8F38AD19-B833-48C4-AA49-26F542137468}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapLayoutChanges", "MapLayoutChanges\MapLayoutChanges.csproj", "{32F9FA15-F413-4EE9-8BBC-3250959712CC}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerChatLines", "CustomerChatLines\CustomerChatLines.csproj", "{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}"
 EndProject
 Global
@@ -58,6 +60,10 @@ Global
 		{8F38AD19-B833-48C4-AA49-26F542137468}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F38AD19-B833-48C4-AA49-26F542137468}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F38AD19-B833-48C4-AA49-26F542137468}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32F9FA15-F413-4EE9-8BBC-3250959712CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32F9FA15-F413-4EE9-8BBC-3250959712CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32F9FA15-F413-4EE9-8BBC-3250959712CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32F9FA15-F413-4EE9-8BBC-3250959712CC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU

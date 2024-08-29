@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
@@ -7,18 +8,22 @@ using PixelCrushers.DialogueSystem;
 
 namespace CustomerChatLines
 {
-
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    public class Plugin : BaseUnityPlugin
+    public partial class Plugin : BaseUnityPlugin
     {
-        private static readonly MethodInfo AddNewDialogueEntry = AccessTools.Method(typeof(Conversation),  "AddNewDialogueEntry", new []{typeof(DialogueEntry), typeof(string), typeof(int), typeof(bool)});
+        private static readonly MethodInfo AddNewDialogueEntry = AccessTools.Method(typeof(Conversation),
+            "AddNewDialogueEntry", new[] { typeof(DialogueEntry), typeof(string), typeof(int), typeof(bool) });
+
         public static Harmony _harmony;
 
-        private record struct ReplacementConfig(ConfigEntry<string> AdditionalLines, ConfigEntry<bool> IsReplacement);
+        private record struct ReplacementConfig(
+            ConfigEntry<string> AdditionalLines,
+            ConfigEntry<bool> IsReplacement);
 
         private static Dictionary<string, ReplacementConfig> Dict { get; } = new();
 
-        private static readonly string[] SupportedConversationReplacements = {
+        private static readonly string[] SupportedConversationReplacements =
+        {
             "BirdCatInteraction",
             "BirdPositiveComments",
             "BirdNegativeComments",
@@ -52,8 +57,18 @@ namespace CustomerChatLines
 
             foreach (var conversationId in SupportedConversationReplacements)
             {
+                string defaultLines = null;
+                if (
+                    Enum.TryParse(typeof(ConversationGroups), conversationId, true, out var communityAdditions) &&
+                    communityAdditions is ConversationGroups conversationGroup &&
+                    Dictionary.ContainsKey(conversationGroup)
+                )
+                {
+                    defaultLines = Dictionary[conversationGroup];
+                }
+                
                 var replacementConfig = new ReplacementConfig(
-                    Config.Bind<string>(conversationId, "additions", null,
+                    Config.Bind<string>(conversationId, "additions", defaultLines,
                         "Pipe '|' separated list of additional lines for this category"),
                     Config.Bind(conversationId, "replaceExisting", false,
                         "Change to true if you only want your additions to be used;")
@@ -64,7 +79,7 @@ namespace CustomerChatLines
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
-        
+
         // On game finishing Load
         [HarmonyPatch(typeof(SaveUI), nameof(SaveUI.TitleFadeInFinished))]
         [HarmonyPostfix]
@@ -73,11 +88,25 @@ namespace CustomerChatLines
             foreach (var (conversationId, (additions, replaceExisting)) in Dict)
             {
                 if (string.IsNullOrWhiteSpace(additions.Value)) continue;
-                
+
                 NewDialogue(conversationId, additions.Value, replaceExisting.Value);
+                // if (
+                //     useCommunityQuotes.Value &&
+                //     Enum.TryParse(typeof(ConversationGroups), conversationId, true, out var communityAdditions) &&
+                //     communityAdditions is ConversationGroups conversationGroup &&
+                //     Dictionary.ContainsKey(conversationGroup)
+                // )
+                // {
+                //     NewDialogue(conversationId, Dictionary[conversationGroup]);
+                //     Console.Out.WriteLine("conversationid" + conversationId + " useComm: " + Dictionary[conversationGroup]);
+                //
+                // }
+                
+                
+                // CustomerChatLines.Plugin.PlayerTestBark(1, "Rowdy");
             }
         }
-        
+
         private static void NewDialogue(string conversationId, string newDialogueStrings, bool replace = false)
         {
             var conversation = DialogueManager.instance.databaseManager.masterDatabase.GetConversation(conversationId);
@@ -92,12 +121,11 @@ namespace CustomerChatLines
                     conversation.dialogueEntries.RemoveAt(i);
                 }
             }
-            
+
             foreach (var dialogueStr in newDialogueStrings.Split('|'))
             {
                 AddNewDialogueEntry.Invoke(conversation, new object[] { example, dialogueStr, 0, true });
             }
-            
         }
     }
 }

@@ -45,12 +45,6 @@ namespace CustomerChatLines
             "HappyRentRoom",
         };
 
-
-        public static void PlayerTestBark(int playerId, string conversationId)
-        {
-            DialogueManager.instance.Bark(conversationId, PlayerController.GetPlayer(playerId).transform);
-        }
-
         private void Awake()
         {
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));

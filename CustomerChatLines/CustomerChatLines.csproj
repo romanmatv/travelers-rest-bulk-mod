@@ -2,8 +2,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>rbk-tr-CustomerChatLines</AssemblyName>
-        <Description>My first plugin</Description>
-        <Version>0.0.0</Version>
+        <Description>Adds more chat lines for customers</Description>
+        <Version>0.0.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <BaseOutputPath>..\output</BaseOutputPath>
         <LangVersion>latest</LangVersion>

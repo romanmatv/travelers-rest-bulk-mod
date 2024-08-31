@@ -1,12 +1,34 @@
 Stop-Process -Name TravellersRest -ErrorAction SilentlyContinue
 
+rm -force -r "NexusMods/." 2> $null;
 
 dotnet build
 cp -r .\output\Debug\netstandard2.1\rbk-*.dll .
 
+$targetReadme="read.me"
+
 $mods = Get-ChildItem -Path . -Filter rbk-*.dll;
-$mods | ForEach-Object { $mod = [System.IO.Path]::GetFileNameWithoutExtension($_.FullName); 7z a -tzip "$mod.zip" "$mod.dll" 1> $null }
+$mods | ForEach-Object {
+    $mod = [System.IO.Path]::GetFileNameWithoutExtension($_.FullName);
+    $modFolder = $mod.replace('rbk-tr-', '');
+    $nexusFolder = "NexusMods/$modFolder"
+    7z a -tzip "$nexusFolder/$mod.zip" "$mod.dll" 1> $null;
+    mv -Force "$mod.dll" "$modFolder/."
+    cat "$modFolder/readme.md" > "$nexusFolder/$targetReadme" 2> $null;
+    echo "" >> "$nexusFolder/$targetReadme";
+    echo "## ChangeLog " >> "$nexusFolder/$targetReadme";
+    echo "" >> "$nexusFolder/$targetReadme";
+    cat "$modFolder/change-log.md" >> "$nexusFolder/$targetReadme" 2> $null;
+    echo "" >> "$nexusFolder/$targetReadme";
+    echo "" >> "$nexusFolder/$targetReadme";
+    cat modUsageNotes.md >> "$nexusFolder/$targetReadme";
+}
 
-cp -force .\rbk-tr-*.dll "C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\BepInEx\plugins\."
+Set-Variable -Name run -Value $args[0];
 
-."C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest.exe"
+cp -force .\**\rbk-tr-*.dll "C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\BepInEx\plugins\.";
+
+
+if ($run) {
+    ."C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest.exe";
+}

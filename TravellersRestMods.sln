@@ -1,12 +1,8 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkipFishingMod", "SkipFishingMod\SkipFishingMod.csproj", "{024004DE-56D3-4F83-A807-BE6C3C67DFD2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EndlessLateNights", "EndlessLateNights\EndlessLateNights.csproj", "{7F70F242-7340-45A5-B26B-AE74D518A179}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterFueling", "FasterFueling\FasterFueling.csproj", "{A41A7A7C-348C-49F8-81DB-D2F00235FDD0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickWaterWell", "QuickWaterWell\QuickWaterWell.csproj", "{941FEF77-DC9E-48D2-9D6D-0E0115A668A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LargeBatchCooking", "LargeBatchCooking\LargeBatchCooking.csproj", "{A57B5CF2-CA74-4482-AE84-E2B9D888D5C7}"
 EndProject
@@ -17,6 +13,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapLayoutChanges", "MapLayoutChanges\MapLayoutChanges.csproj", "{32F9FA15-F413-4EE9-8BBC-3250959712CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerChatLines", "CustomerChatLines\CustomerChatLines.csproj", "{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImprovedClicks", "ImprovedClicks\ImprovedClicks.csproj", "{2274A1B5-DE30-44B9-91BA-2070E618DE84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,14 +38,6 @@ Global
 		{AB0FF083-FA8D-438E-A100-53355FB54444}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB0FF083-FA8D-438E-A100-53355FB54444}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB0FF083-FA8D-438E-A100-53355FB54444}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A41A7A7C-348C-49F8-81DB-D2F00235FDD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A41A7A7C-348C-49F8-81DB-D2F00235FDD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A41A7A7C-348C-49F8-81DB-D2F00235FDD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A41A7A7C-348C-49F8-81DB-D2F00235FDD0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{941FEF77-DC9E-48D2-9D6D-0E0115A668A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{941FEF77-DC9E-48D2-9D6D-0E0115A668A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{941FEF77-DC9E-48D2-9D6D-0E0115A668A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{941FEF77-DC9E-48D2-9D6D-0E0115A668A9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A57B5CF2-CA74-4482-AE84-E2B9D888D5C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A57B5CF2-CA74-4482-AE84-E2B9D888D5C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A57B5CF2-CA74-4482-AE84-E2B9D888D5C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -68,5 +58,9 @@ Global
 		{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91C3F806-4B45-45BA-BBD7-E8113DFC9BF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2274A1B5-DE30-44B9-91BA-2070E618DE84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2274A1B5-DE30-44B9-91BA-2070E618DE84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2274A1B5-DE30-44B9-91BA-2070E618DE84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2274A1B5-DE30-44B9-91BA-2070E618DE84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

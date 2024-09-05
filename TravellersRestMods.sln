@@ -1,5 +1,5 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkipFishingMod", "SkipFishingMod\SkipFishingMod.csproj", "{024004DE-56D3-4F83-A807-BE6C3C67DFD2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EndlessLateNights", "EndlessLateNights\EndlessLateNights.csproj", "{7F70F242-7340-45A5-B26B-AE74D518A179}"
@@ -17,6 +17,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImprovedClicks", "ImprovedClicks\ImprovedClicks.csproj", "{2274A1B5-DE30-44B9-91BA-2070E618DE84}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoundEditor", "SoundEditor\SoundEditor.csproj", "{B77BE536-0131-4293-8B08-5631514731EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestlessCheats", "RestlessCheats\RestlessCheats.csproj", "{FA81AD87-0800-4322-826D-9E1F7230237A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,5 +70,9 @@ Global
 		{B77BE536-0131-4293-8B08-5631514731EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B77BE536-0131-4293-8B08-5631514731EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B77BE536-0131-4293-8B08-5631514731EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA81AD87-0800-4322-826D-9E1F7230237A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA81AD87-0800-4322-826D-9E1F7230237A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA81AD87-0800-4322-826D-9E1F7230237A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA81AD87-0800-4322-826D-9E1F7230237A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

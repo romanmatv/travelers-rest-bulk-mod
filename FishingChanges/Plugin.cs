@@ -36,11 +36,19 @@ namespace FishingChanges
 
             if (_skipFishingMiniGame.Value)
             {
-                // remove other skip minigame mods
-                var moddedMethod = typeof(FishingUI).GetMethod("LateUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
-                var otherMods = Harmony.GetPatchInfo(moddedMethod);
-                // Unpatch all mods on this method
-                _harmony.Unpatch(moddedMethod, HarmonyPatchType.Prefix, otherMods.Prefixes.First(patch => patch.owner != _harmony.Id).owner);
+                try
+                {
+                    // remove other skip minigame mods
+                    var moddedMethod = typeof(FishingUI).GetMethod("LateUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var otherMods = Harmony.GetPatchInfo(moddedMethod);
+
+                    // Unpatch all mods on this method
+                    _harmony.Unpatch(moddedMethod, HarmonyPatchType.Prefix, otherMods.Prefixes.First(patch => patch.owner != _harmony.Id).owner);
+                }
+                catch (Exception _)
+                {
+                    // ignored
+                }
             }
             
             var method = getDynamicFinishFishingMethod();

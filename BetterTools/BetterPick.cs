@@ -5,10 +5,10 @@ using HarmonyLib;
 
 namespace BetterTools;
 
-public class BetterPick : SampleSubModBase
+public class BetterPick : RestlessMods.SubModBase
 {
     
-    internal static Plugin.Tier currentTier => Plugin.GetTier(Plugin.MaxLevel.Value, TavernReputation.GetMilestone());
+    internal static Plugin.Tier CurrentTier => Plugin.GetTier(Plugin.MaxLevel.Value, TavernReputation.GetMilestone());
 
     public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
     {

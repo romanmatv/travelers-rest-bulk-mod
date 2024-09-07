@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BetterTools;
 
-public class BetterWateringCan : SampleSubModBase
+public class BetterWateringCan : RestlessMods.SubModBase
 {
     private static int _maxLevel;
     private static int _maxRows;
@@ -24,13 +24,13 @@ public class BetterWateringCan : SampleSubModBase
         BaseFinish(typeof(BetterWateringCan));
     }
 
-    internal static Plugin.Tier currentTier => Plugin.GetTier(_maxLevel, TavernReputation.GetMilestone());
+    internal static Plugin.Tier CurrentTier => Plugin.GetTier(_maxLevel, TavernReputation.GetMilestone());
 
     [HarmonyPatch(typeof(WateringCan), nameof(WateringCan.Action))]
     [HarmonyPostfix]
     private static void BetterWatering(WateringCan __instance, int __0, bool __result)
     {
-        if (!__result || !Plugin.ModTrigger(__0)) return;
+        if (!__result || !RestlessMods.ModTrigger.ModTriggered(ModName, __0)) return;
         var repLevel = TavernReputation.GetMilestone();
         var facing = PlayerController.GetPlayerDirection(__0);
         var tileMod = facing is Direction.Left or Direction.Down ? -.5 : .5;

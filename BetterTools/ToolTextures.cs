@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 
@@ -25,11 +24,11 @@ namespace BetterTools
 
             Tier tier = x switch
                 {
-                    0 => BetterWateringCan.currentTier,
-                    4 => BetterAx.currentTier,
-                    3 => BetterHoe.currentTier,
-                    2 => BetterSpade.currentTier,
-                    1 => BetterPick.currentTier,
+                    0 => BetterWateringCan.CurrentTier,
+                    4 => BetterAx.CurrentTier,
+                    3 => BetterHoe.CurrentTier,
+                    2 => BetterSpade.CurrentTier,
+                    1 => BetterPick.CurrentTier,
                     _ => Tier.Copper
                 };
 

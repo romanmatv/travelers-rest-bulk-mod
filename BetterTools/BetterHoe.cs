@@ -1,21 +1,22 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using RestlessMods;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 
 namespace BetterTools;
 
-public class BetterHoe : SampleSubModBase
+public class BetterHoe : SubModBase
 {
     private static int _maxLevel;
     private static int _maxRows;
     private static bool Prepared()
     {
-        return Plugin.GetSelfInstanceProperty<CommonReferences>() != null
-               && Plugin.ChangeWorldGridTile__method != null
-               && Plugin.GetWorldTile__method != null;
+        return RandomNameHelper.GetStaticSelfReferenceProperty<CommonReferences>() != null
+               && Plugin.ChangeWorldGridTileMethod != null
+               && Plugin.GetWorldTileMethod != null;
     }
 
     public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
@@ -33,7 +34,7 @@ public class BetterHoe : SampleSubModBase
             BaseFinish(typeof(BetterHoe));
     }
 
-    internal static Plugin.Tier currentTier => Plugin.GetTier(_maxLevel, TavernReputation.GetMilestone());
+    internal static Plugin.Tier CurrentTier => Plugin.GetTier(_maxLevel, TavernReputation.GetMilestone());
 
 
     // Hoe
@@ -60,21 +61,20 @@ public class BetterHoe : SampleSubModBase
 
     private static bool AddSoil(Hoe tool, int playerId, Vector2 targetVector)
     {
-        var target = Plugin.GetWorldTile__method(targetVector);
+        var target = Plugin.GetWorldTileMethod(targetVector);
 
         if (target.isPath || target.farmable == false || target.groundType != GroundType.Ground) return false;
 
         Object.Instantiate(
             Plugin.CommonReferenceInstance.tilledEarthPrefab, targetVector,
             Plugin.CommonReferenceInstance.tilledEarthPrefab.transform.rotation);
-        Plugin.ChangeWorldGridTile__method(targetVector, GroundType.TilledEarth, Location.Road, Season.Spring, false);
-        // gameObject.GetComponent<FertileSoil>().PickUpPlaceables();
+        Plugin.ChangeWorldGridTileMethod(targetVector, GroundType.TilledEarth, Location.Road, Season.Spring, false);
         return true;
     }
 
     private static bool Bury(Hoe tool, int playerId, Vector2 targetVector)
     {
-        var target = Plugin.GetWorldTile__method(targetVector);
+        var target = Plugin.GetWorldTileMethod(targetVector);
 
         if (target.isPath || target.farmable == false || target.groundType != GroundType.TilledEarth) return false;
 
@@ -82,7 +82,7 @@ public class BetterHoe : SampleSubModBase
 
         if (soilToRemove == null) return false;
 
-        Plugin.ChangeWorldGridTile__method(targetVector, GroundType.Ground, Location.Road, Season.Spring, false);
+        Plugin.ChangeWorldGridTileMethod(targetVector, GroundType.Ground, Location.Road, Season.Spring, false);
         Object.Destroy(soilToRemove.gameObject);
         return true;
     }
@@ -92,13 +92,13 @@ public class BetterHoe : SampleSubModBase
     [HarmonyPostfix]
     public static void ToolAction(Hoe __instance, int __0, Vector2 ___tilePosition, bool __result)
     {
-        if (!__result || !Plugin.ModTrigger(__0)) return;
+        if (!__result || !ModTrigger.ModTriggered(ModName, __0)) return;
         var directionVector = Plugin.GetDirectionVector(PlayerController.GetPlayerDirection(__0));
         if (directionVector == Vector2.zero) return;
 
         int extraRows = Plugin.Tiered(_maxLevel, _maxRows, TavernReputation.GetMilestone());
 
-        var methodToRepeat = Plugin.GetWorldTile__method(___tilePosition).groundType == GroundType.TilledEarth
+        var methodToRepeat = Plugin.GetWorldTileMethod(___tilePosition).groundType == GroundType.TilledEarth
             ? "Bury"
             : "AddSoil";
 

@@ -5,9 +5,9 @@ using HarmonyLib;
 
 namespace BetterTools;
 
-public class BetterAx : SampleSubModBase
+public class BetterAx : RestlessMods.SubModBase
 {
-    internal static Plugin.Tier currentTier => Plugin.GetTier(Plugin.MaxLevel.Value, TavernReputation.GetMilestone());
+    internal static Plugin.Tier CurrentTier => Plugin.GetTier(Plugin.MaxLevel.Value, TavernReputation.GetMilestone());
     
     public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
     {

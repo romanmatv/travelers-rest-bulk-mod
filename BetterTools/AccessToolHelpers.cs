@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using HarmonyLib;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace BetterTools
 {
@@ -10,26 +8,6 @@ namespace BetterTools
         {
             _configFile.TryGetEntry<bool>(key, "isEnabled", out var isEnabled);
             return isEnabled.Value;
-        }
-        internal static PropertyInfo GetSelfInstanceProperty<T>()
-        {
-            return AccessTools.FirstProperty(typeof(T), property => property.GetMethod.ReturnType == typeof(T));
-        }
-
-        private static PropertyInfo GetProperty<T, R>()
-        {
-            // return AccessTools.FirstProperty(typeof(GameTileMaps), property => property.GetMethod.ReturnType == typeof(GameTileMaps));
-            return AccessTools.FirstProperty(typeof(T), property => property.GetMethod.ReturnType == typeof(R));
-        }
-
-        private static T GetSelfInstance<T>()
-        {
-            return GetFirstPropertyValue<T, T>(default);
-        }
-
-        private static R GetFirstPropertyValue<T, R>(T obj)
-        {
-            return (R)GetProperty<T, R>().GetValue(obj);
         }
         
         internal static Vector2 GetDirectionVector(Direction direction)

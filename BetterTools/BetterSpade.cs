@@ -6,15 +6,15 @@ using UnityEngine;
 
 namespace BetterTools;
 
-public class BetterSpade : SampleSubModBase
+public class BetterSpade : RestlessMods.SubModBase
 {
     private static int _maxLevel;
     private static int _maxRows;
 
     private static bool Prepared()
     {
-        return Plugin.ChangeWorldGridTile__method != null
-               && Plugin.GetWorldTile__method != null
+        return Plugin.ChangeWorldGridTileMethod != null
+               && Plugin.GetWorldTileMethod != null
             ;
     }
 
@@ -33,7 +33,7 @@ public class BetterSpade : SampleSubModBase
             BaseFinish(typeof(BetterSpade));
     }
 
-    internal static Plugin.Tier currentTier => Plugin.GetTier(_maxLevel, TavernReputation.GetMilestone());
+    internal static Plugin.Tier CurrentTier => Plugin.GetTier(_maxLevel, TavernReputation.GetMilestone());
 
 
     /* Code snippet
@@ -51,18 +51,18 @@ public class BetterSpade : SampleSubModBase
 
     private static bool Action(Spade tool, int playerId, Vector2 targetVector, string actionStr)
     {
-        var target = Plugin.GetWorldTile__method(targetVector);
+        var target = Plugin.GetWorldTileMethod(targetVector);
 
         if (target.isPath || target.farmable == false) return false;
 
         switch (actionStr)
         {
             case "RemoveGrass" when target.groundType == GroundType.Grass:
-                Plugin.ChangeWorldGridTile__method(targetVector, GroundType.Ground, Location.Road, Season.Spring,
+                Plugin.ChangeWorldGridTileMethod(targetVector, GroundType.Ground, Location.Road, Season.Spring,
                     false);
                 return true;
             case "AddGrass" when target.groundType == GroundType.Ground:
-                Plugin.ChangeWorldGridTile__method(targetVector, GroundType.Grass, Location.Road, Season.Spring, false);
+                Plugin.ChangeWorldGridTileMethod(targetVector, GroundType.Grass, Location.Road, Season.Spring, false);
                 return true;
             default:
                 return false;
@@ -73,13 +73,13 @@ public class BetterSpade : SampleSubModBase
     [HarmonyPostfix]
     public static void ToolAction(Spade __instance, int __0, Vector2 ___tilePosition, bool __result)
     {
-        if (!__result || !Plugin.ModTrigger(__0)) return;
+        if (!__result || !RestlessMods.ModTrigger.ModTriggered(ModName, __0)) return;
         var directionVector = Plugin.GetDirectionVector(PlayerController.GetPlayerDirection(__0));
         if (directionVector == Vector2.zero) return;
 
         int extraRows = Plugin.Tiered(_maxLevel, _maxRows, TavernReputation.GetMilestone());
 
-        var methodToRepeat = Plugin.GetWorldTile__method(___tilePosition).groundType == GroundType.Grass
+        var methodToRepeat = Plugin.GetWorldTileMethod(___tilePosition).groundType == GroundType.Grass
             ? "RemoveGrass"
             : "AddGrass";
 

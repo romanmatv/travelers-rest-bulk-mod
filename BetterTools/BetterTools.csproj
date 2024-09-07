@@ -13,19 +13,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
-        <PackageReference Include="BepInEx.Core" Version="5.*"/>
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*"/>
-        <PackageReference Include="HarmonyX" Version="2.13.0"/>
-        <PackageReference Include="UnityEngine.Modules" Version="2020.3.17" IncludeAssets="compile"/>
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.Core" Version="5.*" />
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+        <PackageReference Include="HarmonyX" Version="2.13.0" />
+        <PackageReference Include="UnityEngine.Modules" Version="2020.3.17" IncludeAssets="compile" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Textures\TieredTools.png"/>
+        <EmbeddedResource Include="Textures\TieredTools.png" />
     </ItemGroup>
 
     <ItemGroup>
@@ -47,5 +47,9 @@
         <Reference Include="Sirenix.Serialization">
             <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Sirenix.Serialization.dll</HintPath>
         </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\HelperMods\RestlessMods\*.cs" LinkBase="RestlessMods" />
     </ItemGroup>
 </Project>

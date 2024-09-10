@@ -49,6 +49,11 @@ namespace FishingChanges
                     {
                         _harmony.Unpatch(moddedMethod, HarmonyPatchType.Prefix, mod.owner);
                     }
+
+                    _harmony.Patch(
+                        AccessTools.Method(typeof(FishingUI), "LateUpdate"),
+                        prefix:AccessTools.Method(typeof(Plugin), nameof(SkipFishingMinigame))
+                    );
                 }
                 catch (Exception _)
                 {
@@ -123,15 +128,13 @@ namespace FishingChanges
         
         //////////////////////////////////////////////////////////////////
         ///  Instant Catch (by DrStalker)
-        [HarmonyPatch(typeof(FishingUI), "LateUpdate")]
-        [HarmonyPrefix]
         static bool SkipFishingMinigame(FishingUI __instance)
         {
-            if (_skipFishingMiniGame.Value == false) return false;
+            if (!_skipFishingMiniGame.Value) return false;
             if (!__instance.content.activeInHierarchy) return true;
             
             // Get the private slider object
-            Slider reflectedSlider = Traverse.Create(__instance)
+            var reflectedSlider = Traverse.Create(__instance)
                 .Field("progress")
                 .GetValue<Slider>();
 

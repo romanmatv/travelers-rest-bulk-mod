@@ -4,7 +4,6 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using HarmonyLib.Public.Patching;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -17,12 +16,14 @@ namespace FishingChanges
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        public static Harmony _harmony;
+        private static Harmony _harmony;
 
         private static ConfigEntry<float> _nonRecordFishAnimationTime;
         private static ConfigEntry<bool> _skipFishingMiniGame;
 
-        private static ILHook changedFishingWaitTimesMod;
+        // Hook here to allow toggling off if desired
+        // ReSharper disable once NotAccessedField.Local
+        private static ILHook _changedFishingWaitTimesMod;
         
         private void Awake()
         {
@@ -43,7 +44,11 @@ namespace FishingChanges
                     var otherMods = Harmony.GetPatchInfo(moddedMethod);
 
                     // Unpatch all mods on this method
-                    _harmony.Unpatch(moddedMethod, HarmonyPatchType.Prefix, otherMods.Prefixes.First(patch => patch.owner != _harmony.Id).owner);
+                    var otherPrefixMods = otherMods.Prefixes.Where(patch => patch.owner != _harmony.Id).ToHashSet();
+                    foreach (var mod in otherPrefixMods)
+                    {
+                        _harmony.Unpatch(moddedMethod, HarmonyPatchType.Prefix, mod.owner);
+                    }
                 }
                 catch (Exception _)
                 {
@@ -52,7 +57,7 @@ namespace FishingChanges
             }
             
             var method = getDynamicFinishFishingMethod();
-            changedFishingWaitTimesMod = method == null ? null : new ILHook(method, ChangeAnimationTime);
+            _changedFishingWaitTimesMod = method == null ? null : new ILHook(method, ChangeAnimationTime);
             
             Logger.LogInfo($"Mod: {PluginInfo.PLUGIN_NAME} {PluginInfo.PLUGIN_GUID} is loaded!");
         }
@@ -66,20 +71,12 @@ namespace FishingChanges
 
             if (finishFishingMethod == null)
             {
-                throw new Exception("Cannot load this mod " + finishFishingMethod.Name + " cannot be found.");
+                throw new Exception("Cannot load this mod " + nameof(FishingController.FinishFishing) + " cannot be found.");
             }
 
             new ILHook(finishFishingMethod, (il) =>
             {
                 var cursor = new ILCursor(il);
-
-                cursor.TryGotoNext(x =>
-                {
-                    if (!x.OpCode.Equals(OpCodes.Call))
-                        return false;
-                    Console.Out.WriteLine(x.ToString());
-                    return true;
-                });
 
                 // there will be a code of: call .* FishingController::<<<<dynamicMethodName>>>>(
 
@@ -91,10 +88,10 @@ namespace FishingChanges
                     var opString = x?.ToString();
                     
                     var isExpectedMethod =
-                        opString.Contains("System.Collections.IEnumerator") &&
-                        opString.Contains("FishingController::") &&
-                        opString.Contains("(UnityEngine.Vector3,System.Boolean)")
-                    ;
+                            opString.Contains("System.Collections.IEnumerator") &&
+                            opString.Contains("FishingController::") &&
+                            opString.Contains("(UnityEngine.Vector3,System.Boolean)")
+                        ;
                     
                     if (!isExpectedMethod) return false;
                     dynamicMethodName = opString.Split("::")[1].Split("(")[0];
@@ -102,10 +99,10 @@ namespace FishingChanges
                     return true;
                 });
             });
-            
-            
+
+
             return typeof(FishingController)
-                ?.GetMethod(dynamicMethodName, BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetMethod(dynamicMethodName, BindingFlags.NonPublic | BindingFlags.Instance)
                 ?.GetStateMachineTarget();
         }
 

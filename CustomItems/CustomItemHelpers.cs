@@ -110,9 +110,9 @@ public static class CustomItemHelpers
         // todo:
         // item.dirtySprite =
         // item.heldSprite =
-        item.ingredientIcon = Sprite.Create(tex, new Rect(x * 32, y * 32, 32, 32), new Vector2(0f, 0f));
-        item.icon = Sprite.Create(tex, new Rect(x * 32, y * 32, 32, 32), new Vector2(0f, 0f));
-        item.sprite = Sprite.Create(tex, new Rect(x * 32, y * 32, 32, 32), new Vector2(0f, 0f));
+        item.ingredientIcon = Sprite.Create(tex, new Rect(x * 33, y * 33, 33, 33), new Vector2(0f, 0f));
+        item.icon = Sprite.Create(tex, new Rect(x * 33, y * 33, 33, 33), new Vector2(0f, 0f));
+        item.sprite = Sprite.Create(tex, new Rect(x * 33, y * 33, 33, 33), new Vector2(0f, 0f));
 
         Traverse.Create(item).Field("id").SetValue(itemId);
 

@@ -11,6 +11,10 @@ Only tested Food/Drink and Recipes atm
 
 The mod will look into all folders provided in the config for any .csv file containing item/recipe and will load those csv into memory and on game start will add all into the inGame database. For all Sprites in the item file you will need to provide a .png spriteSheet and the name with folder to the spriteSheet, note the spritesheet counts off starting at bottom left (0,0) and the file has to be 512x512 pixels.
 
+###### Note mod also needs the CsvHelper.dll added into the BepInEx plugins so don't forget to copy that over
+###### Note mod assumes the SpriteSheet has 33x33 sprites but even the game does not do exactly that to save some space
+
+
 ![Folder Structure](img.png)
 
 
@@ -23,25 +27,26 @@ The mod will look into all folders provided in the config for any .csv file cont
 > (omelete, pizza, thai tea, bubble water)
 
 
-![recipe](Example/recipes.csv)
-
+[recipe](Example/recipes.csv)
+```
     Examples:
     Chocolate Cake = 1269 - "flour" (5)|202 - "sugar" (2)|1251 - "egg" (1) 
     Fried Egg = 1251 - "egg" (1)
     Omelete = 1251 - "egg" (6)|-23 - "milk group" (1)
-
+```
 
 ## Create an Item file (.csv)
+```
     id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,modifiers,sellPrice,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends,spriteSheetName,spriteX,spriteY
     182002,Fried Egg,Food,false,false,None,None,2,false,false,false,false,NewItem.png,2,0
-
+```
 ##### foodType
 - Food or Drink or None
 
 ##### ingredientType
 - If this new item is an ingredient item what type of ingredient is it 
 
-
+```
     None
     Herb
     Fruit
@@ -68,11 +73,13 @@ The mod will look into all folders provided in the config for any .csv file cont
     BlueFish
     Shellfish
     Berries
+```
 
 ##### modifiers (currently not connected)
 - If this new item is an ingredient item what type of modifiers does it provide 
 
 
+```
     Fruity
     Citrus
     Sweet
@@ -93,7 +100,7 @@ The mod will look into all folders provided in the config for any .csv file cont
     Seedy
     Aged
     Dairy
-
+```
 
 ##### sellPrice
 - this is currently whole silver coins.
@@ -105,32 +112,31 @@ The mod will look into all folders provided in the config for any .csv file cont
 
 ##### workstation
 - id for the workstation this recipe will be added to
-
-
-    670 - Distillery
-    672 - Oven
-    673 - Malting Machine
-    674 - Cheese Factory
-    675 - Fermentation Tank
-    676 - Mash Barrel
-    703 - Sawmill
-    704 - Smelting Furnace
-    706 - Stone Workshop
-    709 - Press
-    723 - Cutting Axe
-    731 - Stonecutter Work Table
-    733 - Mixing Tank
-    728 - Blacksmith Table
-    1232 - Forage Table
-    1240 - Kitchen Table
-    1380 - Preserves Table
-    1451 - Tackle Table
-    1532 - Cocktail Table
-
+```
+      670 - Distillery
+      672 - Oven
+      673 - Malting Machine
+      674 - Cheese Factory
+      675 - Fermentation Tank
+      676 - Mash Barrel
+      703 - Sawmill
+      704 - Smelting Furnace
+      706 - Stone Workshop
+      709 - Press
+      723 - Cutting Axe
+      731 - Stonecutter Work Table
+      733 - Mixing Tank
+      728 - Blacksmith Table
+      1232 - Forage Table
+      1240 - Kitchen Table
+      1380 - Preserves Table
+      1451 - Tackle Table
+      1532 - Cocktail Table
+```
 ##### page
 - What page will this recipe show in the crafter/recipe book
 
-
+```
     All
     Starter
     Vegetables
@@ -140,19 +146,19 @@ The mod will look into all folders provided in the config for any .csv file cont
     Broth
     Dessert
     Drinks
-
+```
 
 ##### recipeGroup
 - What group does this recipe best fit in
 
-
+```
     None
     Food
     Drink
     Wood
     Stone
     Metal
-
+```
 
 
 ##### recipeIngredients
@@ -161,7 +167,7 @@ The mod will look into all folders provided in the config for any .csv file cont
 - you can have up to 5 ingredients separated by |
 - groupIds are also supported (yes they are negative):
 
-
+```
     -45 - Beer Group
     -44 - Wine Group
     -43 - Grape Juice
@@ -203,4 +209,4 @@ The mod will look into all folders provided in the config for any .csv file cont
     -3 - Cereal Group
     -2 - Fruit Group
     -1 - Meat Group
- 
+ ```

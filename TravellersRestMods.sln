@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestlessCheats", "RestlessC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSleepingInGameWeeks", "NoSleepingInGameWeeks\NoSleepingInGameWeeks.csproj", "{B2401F28-947C-4BC7-87EC-11EBCC53E342}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomItems", "CustomItems\CustomItems.csproj", "{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,5 +86,9 @@ Global
 		{B2401F28-947C-4BC7-87EC-11EBCC53E342}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2401F28-947C-4BC7-87EC-11EBCC53E342}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2401F28-947C-4BC7-87EC-11EBCC53E342}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

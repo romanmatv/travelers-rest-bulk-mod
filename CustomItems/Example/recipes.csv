@@ -1,0 +1,4 @@
+id,name,itemId,workstation,page,recipeGroup,recipeIngredients,fuel,time,outputAmount
+182000,Chocolate Cake,182000,672,Dessert,Food,"1269 - (5)|202 - (2)|1251 - (1)",30,60,30
+182002,Fried Egg,182002,672,Starter,Food,"1251 - (1)",5,10,1
+182003,Omelete,182003,672,Starter,Food,"1251 - (6)|-23 - (1)",30,20,30

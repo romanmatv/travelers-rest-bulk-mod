@@ -1,0 +1,4 @@
+id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,modifiers,sellPrice,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends,spriteSheetName,spriteX,spriteY
+182000,chocolate cake,Food,false,false,None,None,2,false,false,true,false,rbk-tr-CustomItems\Custom1.png,8,13
+182001,hashbrown,Food,false,false,None,None,2,false,false,false,false,rbk-tr-CustomItems\Custom1.png,1,0
+182002,fried egg,Food,false,false,None,None,2,false,false,false,false,rbk-tr-CustomItems\Custom1.png,2,0

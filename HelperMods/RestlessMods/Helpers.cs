@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using BepInEx.Configuration;
@@ -6,6 +8,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Rewired;
+using UnityEngine;
 
 namespace RestlessMods;
 
@@ -24,6 +27,32 @@ public abstract class ModTrigger
                || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
                || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
                    .Any(joystick => joystick.GetButton(modKey));
+    }
+}
+
+public abstract class CustomSpriteSheets
+{
+    private static readonly Dictionary<string, byte[]> SpriteSheets = new();
+
+    public static Texture2D GetTextureBySpriteSheetName(string name)
+    {
+        var tex = new Texture2D(512, 512, TextureFormat.ARGB32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp,
+        };
+
+        byte[] image;
+        if (SpriteSheets.TryGetValue(name, out var bytes))
+            image = bytes;
+        else
+        {
+            image = File.ReadAllBytes(@"BepInEx\plugins\" + name);
+            SpriteSheets.Add(name, image);
+        }
+
+        tex.LoadImage(image);
+        return tex;
     }
 }
 
@@ -50,6 +79,12 @@ public abstract class RandomNameHelper
     internal static PropertyInfo GetStaticSelfReferenceProperty<T>(Func<PropertyInfo, bool> filter = null)
     {
         return GetProperty<T, T>();
+    }
+
+    internal static FieldInfo GetField<T, TR>([CanBeNull] Func<FieldInfo, bool> filter = null)
+    {
+        return AccessTools.GetDeclaredFields(typeof(T))
+            .First(field => field.FieldType == typeof(TR) && (filter == null || filter.Invoke(field)));
     }
 
     internal static PropertyInfo GetProperty<T, TR>([CanBeNull] Func<PropertyInfo, bool> filter = null)
@@ -90,7 +125,6 @@ public abstract class RandomNameHelper
         private static MethodInfo FindMethod(Type type, Type[] parameterTypes,
             [CanBeNull] Func<MethodInfo, bool> filter = null)
         {
-
             return AccessTools.FirstMethod(type, methodInfo =>
             {
                 if (!methodInfo.IsStatic || (filter != null && filter.Invoke(methodInfo) == false)) return false;
@@ -99,71 +133,64 @@ public abstract class RandomNameHelper
                 if (arguments.Length < parameterTypes.Length) return false;
                 return parameterTypes
                     .Where((parameterType, index) => arguments[index].ParameterType == parameterType)
-                    .Count() == arguments.Length;
-
-                // (parameterInfo, index) =>
-                // arguments[index].ParameterType == typeof(ParameterInfo));
-                //         arguments[0].ParameterType == typeof(Vector3) &&
-                //         arguments[1].ParameterType == typeof(GroundType) &&
-                //         arguments[2].ParameterType == typeof(Location);
-                // });
+                    .Count() == arguments.Length; 
             });
         }
     }
 }
 
 public class SubModBase
+{
+    protected readonly record struct Configuration(ConfigFile ConfigFile, string SectionName)
     {
-        protected readonly record struct Configuration(ConfigFile ConfigFile, string SectionName)
+        public ConfigEntry<bool> Enabled()
         {
-            public ConfigEntry<bool> Enabled()
-            {
-                return Bind("isEnabled", true, "Flag to enable or disable this mod");
-            }
-
-            public ConfigEntry<T> Bind<T>(string key, T defaultValue, string description = "")
-            {
-                return ConfigFile.Bind(SectionName, key, defaultValue, description);
-            }
-
-            public ConfigFile ConfigFile { get; } = ConfigFile;
-            public string SectionName { get; } = SectionName;
+            return Bind("isEnabled", true, "Flag to enable or disable this mod");
         }
 
-        protected static Configuration Config;
-        protected static ConfigEntry<bool> IsEnabled;
-        protected static string ModName;
-        protected static ManualLogSource Log;
-        protected static Harmony Harmony;
-
-        protected static void BaseSetup(Harmony harmony, ConfigFile config, ManualLogSource logger, string modName)
+        public ConfigEntry<T> Bind<T>(string key, T defaultValue, string description = "")
         {
-            Config = new Configuration(config, modName);
-            Log = logger;
-            Harmony = harmony;
-            ModName = modName;
-            IsEnabled = Config.Enabled();
+            return ConfigFile.Bind(SectionName, key, defaultValue, description);
         }
 
-        protected static void BaseFinish(Type type)
-        {
-            if (!IsEnabled.Value) return;
-
-            Harmony.PatchAll(type);
-            Log.LogInfo("\t loaded sub-module " + ModName + "!");
-        }
-
-        protected static void LoadFailure()
-        {
-            Log.LogWarning("\t FAILED TO load sub-module " + ModName + "!");
-        }
-
-        public static void Awake(Harmony harmony, ConfigFile configFile, ManualLogSource logger)
-        {
-            BaseSetup(harmony, configFile, logger, nameof(SubModBase));
-
-            // Add more here
-
-            BaseFinish(typeof(SubModBase));
-        }
+        public ConfigFile ConfigFile { get; } = ConfigFile;
+        public string SectionName { get; } = SectionName;
     }
+
+    protected static Configuration Config;
+    protected static ConfigEntry<bool> IsEnabled;
+    protected static string ModName;
+    protected static ManualLogSource Log;
+    protected static Harmony Harmony;
+
+    protected static void BaseSetup(Harmony harmony, ConfigFile config, ManualLogSource logger, string modName)
+    {
+        Config = new Configuration(config, modName);
+        Log = logger;
+        Harmony = harmony;
+        ModName = modName;
+        IsEnabled = Config.Enabled();
+    }
+
+    protected static void BaseFinish(Type type)
+    {
+        if (!IsEnabled.Value) return;
+
+        Harmony.PatchAll(type);
+        Log.LogInfo("\t loaded sub-module " + ModName + "!");
+    }
+
+    protected static void LoadFailure()
+    {
+        Log.LogWarning("\t FAILED TO load sub-module " + ModName + "!");
+    }
+
+    public static void Awake(Harmony harmony, ConfigFile configFile, ManualLogSource logger)
+    {
+        BaseSetup(harmony, configFile, logger, nameof(SubModBase));
+
+        // Add more here
+
+        BaseFinish(typeof(SubModBase));
+    }
+}

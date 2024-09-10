@@ -1,0 +1,5 @@
+id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,modifiers,sellPrice,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends,spriteSheetName,spriteX,spriteY
+182003,omelete,Food,false,false,None,None,2,false,false,false,false,rbk-tr-CustomItems\Custom2.png,3,0
+182004,pizza,Food,false,false,None,None,2,false,false,false,false,rbk-tr-CustomItems\Custom2.png,4,0
+182005,thai tea,Drink,false,false,None,None,2,false,false,false,false,rbk-tr-CustomItems\Custom2.png,5,0
+182006,bubble water,Drink,false,false,None,None,1,false,false,false,false,rbk-tr-CustomItems\Custom2.png,6,0

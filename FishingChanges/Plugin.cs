@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -20,6 +21,7 @@ namespace FishingChanges
 
         private static ConfigEntry<float> _nonRecordFishAnimationTime;
         private static ConfigEntry<bool> _skipFishingMiniGame;
+        private static ManualLogSource Log;
 
         // Hook here to allow toggling off if desired
         // ReSharper disable once NotAccessedField.Local
@@ -29,41 +31,44 @@ namespace FishingChanges
         {
             // Plugin startup logic
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin), PluginInfo.PLUGIN_NAME);
+            Log = Logger;
 
             _nonRecordFishAnimationTime = Config.Bind("FishingChanges", "nonRecordAnimationTime", 0f,
                 "the game spends 4.5 seconds on showing the fish, this setting changes animationTime for non record fish and trash only");
             _skipFishingMiniGame = Config.Bind("FishingChanges", "skipFishingMiniGame", false,
                 "Skips fishing minigame, note if another mod is also patching FishingUI::LateUpdate I will be uninstall that mod.");
-
+            
             if (_skipFishingMiniGame.Value)
             {
                 try
                 {
-                    // remove other skip minigame mods
                     var moddedMethod = typeof(FishingUI).GetMethod("LateUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+                    _harmony.Patch(
+                        moddedMethod,
+                        prefix:new HarmonyMethod(AccessTools.Method(typeof(Plugin), nameof(Plugin.SkipFishingMinigame)))
+                    );
+                    
+                    // remove other skip minigame mods
                     var otherMods = Harmony.GetPatchInfo(moddedMethod);
-
-                    // Unpatch all mods on this method
+            
+                    // Unpatch all mods on this method 
                     var otherPrefixMods = otherMods.Prefixes.Where(patch => patch.owner != _harmony.Id).ToHashSet();
                     foreach (var mod in otherPrefixMods)
                     {
+                        Log.LogInfo(string.Format("removing mod by-{0}", mod.owner));
                         _harmony.Unpatch(moddedMethod, HarmonyPatchType.Prefix, mod.owner);
                     }
-
-                    _harmony.Patch(
-                        AccessTools.Method(typeof(FishingUI), "LateUpdate"),
-                        prefix:AccessTools.Method(typeof(Plugin), nameof(SkipFishingMinigame))
-                    );
                 }
                 catch (Exception _)
                 {
+                    Log.LogError(string.Format("Error around skippingFishingMiniGame Mod: {0}", _.Message));
                     // ignored
                 }
             }
             
             var method = getDynamicFinishFishingMethod();
             _changedFishingWaitTimesMod = method == null ? null : new ILHook(method, ChangeAnimationTime);
-            
+
             Logger.LogInfo($"Mod: {PluginInfo.PLUGIN_NAME} {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
@@ -100,7 +105,7 @@ namespace FishingChanges
                     
                     if (!isExpectedMethod) return false;
                     dynamicMethodName = opString.Split("::")[1].Split("(")[0];
-                    Console.Out.WriteLine(finishFishingMethod.Name + " found as " + dynamicMethodName);
+                    Log.LogInfo(finishFishingMethod.Name + " found as " + dynamicMethodName);
                     return true;
                 });
             });

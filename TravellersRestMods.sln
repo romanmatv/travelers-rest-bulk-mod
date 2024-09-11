@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSleepingInGameWeeks", "No
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomItems", "CustomItems\CustomItems.csproj", "{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraOptions", "CameraOptions\CameraOptions.csproj", "{0BB8E7BA-4B18-4C3E-ABB1-23F73835EC56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,5 +92,9 @@ Global
 		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA9E577C-212E-4B0A-ADD4-C0551F4593B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BB8E7BA-4B18-4C3E-ABB1-23F73835EC56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BB8E7BA-4B18-4C3E-ABB1-23F73835EC56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BB8E7BA-4B18-4C3E-ABB1-23F73835EC56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BB8E7BA-4B18-4C3E-ABB1-23F73835EC56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

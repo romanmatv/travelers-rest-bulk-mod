@@ -1,8 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using UnityEngine;
 
 namespace BetterTools;
 
@@ -73,6 +75,60 @@ public partial class Plugin : BaseUnityPlugin
             info?.CopyTo(ms);
             _toolTextureBytes = ms.ToArray();
             return _toolTextureBytes;
+        }
+    }
+    
+    
+    private static byte[] _newItems;
+
+    private static Dictionary<string, byte[]> SpriteSheets = new();
+
+    public static Texture2D GetTextureBySpriteSheetName(string name)
+    {
+        var tex = new Texture2D(512, 512, TextureFormat.ARGB32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp,
+        };
+
+        byte[] image;
+        if (SpriteSheets.TryGetValue(name, out var bytes))
+            image = bytes;
+        else
+        {
+            if (name.StartsWith("BetterTools.Textures"))
+            {
+                using var ms = new MemoryStream();
+                Assembly.GetExecutingAssembly()
+                    .GetManifestResourceStream("BetterTools.Textures.Sheet.png")
+                    ?.CopyTo(ms);
+                image = ms.ToArray();
+            }
+            else
+            {
+                image = File.ReadAllBytes(@"BepInEx\plugins\rbk-tr-CustomSprites\" + name);
+            }
+            SpriteSheets.Add(name, image);
+
+        }
+        
+        tex.LoadImage(image);
+        return tex;
+    }
+
+
+    private static byte[] NewItems
+    {
+        get
+        {
+            if (_newItems != null) return _newItems;
+
+            var info = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("BetterTools.Textures.Sheet.png");
+            using var ms = new MemoryStream();
+            info?.CopyTo(ms);
+            _newItems = ms.ToArray();
+            return _newItems;
         }
     }
 }

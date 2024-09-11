@@ -38,7 +38,7 @@ public partial class Plugin
         }
     }
 
-    private static readonly Dictionary<Vector3, WorldTile> GameTileMapWorldTileDict =
+    private static Dictionary<Vector3, WorldTile> GameTileMapWorldTileDict =>
         RandomNameHelper.GetPropertyValue<GameTileMaps, Dictionary<Vector3, WorldTile>>(GameTileMapsInstance);
 
     // Needed Instances

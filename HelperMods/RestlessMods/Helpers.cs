@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -11,6 +12,21 @@ using Rewired;
 using UnityEngine;
 
 namespace RestlessMods;
+
+
+public abstract class ModBase : BaseUnityPlugin
+{
+    protected internal static Harmony _harmony;
+    protected internal static ConfigFile _config;
+    protected internal static ManualLogSource Log;
+
+    public void Setup(Type t, string pluginName)
+    {
+        _harmony = Harmony.CreateAndPatchAll(t, pluginName);
+        Log = Logger;
+        _config = Config;
+    }
+}
 
 public abstract class ModTrigger
 {
@@ -47,8 +63,17 @@ public abstract class CustomSpriteSheets
             image = bytes;
         else
         {
-            image = File.ReadAllBytes(@"BepInEx\plugins\" + name);
-            SpriteSheets.Add(name, image);
+            var filepath = @"BepInEx\plugins\" + name;
+            if (File.Exists(filepath))
+            {
+                image = File.ReadAllBytes(@"BepInEx\plugins\" + name);
+                SpriteSheets.Add(name, image);
+            }
+            else
+            {
+                Console.Error.WriteLine("Unable to find spritesheet " + filepath);
+                return tex;
+            }
         }
 
         tex.LoadImage(image);
@@ -163,6 +188,10 @@ public class SubModBase
     protected static ManualLogSource Log;
     protected static Harmony Harmony;
 
+    protected static void BaseSetup(string modName)
+    {
+        BaseSetup(ModBase._harmony, ModBase._config, ModBase.Log, modName);
+    }
     protected static void BaseSetup(Harmony harmony, ConfigFile config, ManualLogSource logger, string modName)
     {
         Config = new Configuration(config, modName);
@@ -185,6 +214,14 @@ public class SubModBase
         Log.LogWarning("\t FAILED TO load sub-module " + ModName + "!");
     }
 
+    public static void Awake()
+    {
+        BaseSetup(nameof(SubModBase));
+
+        // Add more here
+
+        BaseFinish(typeof(SubModBase));
+    }
     public static void Awake(Harmony harmony, ConfigFile configFile, ManualLogSource logger)
     {
         BaseSetup(harmony, configFile, logger, nameof(SubModBase));

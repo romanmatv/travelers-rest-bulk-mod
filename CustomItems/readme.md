@@ -210,3 +210,11 @@ The mod will look into all folders provided in the config for any .csv file cont
     -2 - Fruit Group
     -1 - Meat Group
  ```
+
+
+### Examples - added recipes for Amos' consumables
+
+
+![img_14.png](img_14.png)
+![img_15.png](img_15.png)
+

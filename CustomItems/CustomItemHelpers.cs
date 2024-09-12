@@ -30,7 +30,7 @@ public static class CustomItemHelpers
     
     public static void AddItemsFromDir(string relativePath, ref Dictionary<int, Item> outDictionary)
     {
-        foreach (var file in new DirectoryInfo(BepInExPluginPath + relativePath).GetFiles())
+        foreach (var file in GetFiles(relativePath))
             if (file.Name.ToLowerInvariant().Contains("item") && file.Name.EndsWith(".csv"))
                 AddItems(file, ref outDictionary);
     }
@@ -123,9 +123,21 @@ public static class CustomItemHelpers
         return item;
     }
 
+    private static FileInfo[] GetFiles(string relativePath)
+    {
+        var directory = new DirectoryInfo(BepInExPluginPath + relativePath);
+        if (!directory.Exists)
+        {
+            directory.Create();
+            directory = new DirectoryInfo(BepInExPluginPath + relativePath);
+        }
+
+        return directory.GetFiles();
+    }
+
     public static void AddRecipesFromDir(string relativePath, ref Dictionary<int, Recipe> outDictionary)
     {
-        foreach (var file in new DirectoryInfo(BepInExPluginPath + relativePath).GetFiles())
+        foreach (var file in GetFiles(relativePath))
             if (file.Name.ToLowerInvariant().Contains("recipe") && file.Name.EndsWith(".csv"))
                 AddRecipes(file, ref outDictionary);
     }

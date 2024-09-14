@@ -1,17 +1,17 @@
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
+using RestlessMods;
 
 
 namespace ImprovedClicks;
 
-public class FasterFueling : SampleSubModBase
+public class FasterFueling : SubModBase
 {
     private static ConfigEntry<int> _fuelInputWithRightClick;
     
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(FasterFueling));
+        BaseSetup(nameof(FasterFueling));
         
         _fuelInputWithRightClick = Config.Bind("input size", 5,
         "Change the amount of fuel to move on one click, while holding ModTrigger");

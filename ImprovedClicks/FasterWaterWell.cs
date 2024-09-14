@@ -1,17 +1,16 @@
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
+using RestlessMods;
 
 
 namespace ImprovedClicks;
 
-public class FasterWaterWell : SampleSubModBase
+public class FasterWaterWell : SubModBase
 {
     private static CommonReferences _commonReferences;
 
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(FasterWaterWell));
+        BaseSetup(nameof(FasterWaterWell));
 
         BaseFinish(typeof(FasterWaterWell));
 

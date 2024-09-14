@@ -9,3 +9,4 @@ When holding a ModTrigger (Right Click or for controller customizable), the mod 
 You can buy X Seeds in oneClick.
 You can add X Kindling to the fire.
 You can fill all empty buckets with water.
+You can sort by sell price.

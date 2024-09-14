@@ -1,17 +1,17 @@
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
+using RestlessMods;
 
 
 namespace ImprovedClicks;
 
-public class FasterShopping : SampleSubModBase
+public class FasterShopping : SubModBase
 {
     private static ConfigEntry<int> _shopInputWithRightClick;
     
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(FasterShopping));
+        BaseSetup(nameof(FasterShopping));
 
         _shopInputWithRightClick = Config.Bind("input size", 50,
             "Change the amount of items to grab on one click, while holding ModTrigger");
@@ -23,12 +23,7 @@ public class FasterShopping : SampleSubModBase
     [HarmonyPrefix]
     static void ShopElementUIClick(ShopElementUI __instance)
     {
-        _log.LogInfo("Clicked a shop element");
-        _log.LogInfo("trigger " + Plugin.ModTrigger(1));
         if (__instance == null || !Plugin.ModTrigger(1)) return;
-        
-        _log.LogInfo("Here at least passed the mod trigger");
-        _log.LogInfo("rightClickAmount " + _shopInputWithRightClick.Value);
         
         for (var i = 1; i < _shopInputWithRightClick.Value; i++)
             __instance.SingleElementClicked();

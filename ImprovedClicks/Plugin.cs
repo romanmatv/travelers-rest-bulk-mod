@@ -7,7 +7,7 @@ using Rewired;
 namespace ImprovedClicks
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    public class Plugin : BaseUnityPlugin
+    public class Plugin : RestlessMods.ModBase
     {
         private static Harmony _harmony;
         private static ConfigEntry<int> _modGamepadHotKey;
@@ -21,15 +21,16 @@ namespace ImprovedClicks
 
         private void Awake()
         {
-            _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            Setup(typeof(Plugin), PluginInfo.PLUGIN_NAME);
 
             _modGamepadHotKey = Config.Bind("ImprovedClicks", "keycode for button trigger", 11,
                 "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
 
             
-            FasterFueling.Awake(_harmony, Config, Logger);
-            FasterShopping.Awake(_harmony, Config, Logger);
-            FasterWaterWell.Awake(_harmony, Config, Logger);
+            FasterFueling.Awake();
+            FasterShopping.Awake();
+            FasterWaterWell.Awake();
+            OtherSortingOptions.Awake();
             
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");

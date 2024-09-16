@@ -10,6 +10,7 @@ using CsvHelper;
 using HarmonyLib;
 using RestlessMods;
 using UnityEngine;
+// ReSharper disable UseStringInterpolation
 
 namespace CustomItems;
 
@@ -21,26 +22,164 @@ public static class CustomItemHelpers
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
-    private record struct ModItemLine( int id, string name, FoodType foodType, bool canBeUsedAsModifier, bool containsAlcohol, IngredientType ingredientType, IngredientModifier[] modifiers, int sellPrice, bool canBeAged, bool hasToBeAgedMeal, bool appearsInOrders, bool excludedFromTrends, string spriteSheetName, int spriteX, int spriteY );
+    internal record struct ModItemLine(
+        int id,
+        string name,
+        FoodType foodType,
+        bool canBeUsedAsModifier,
+        bool containsAlcohol,
+        IngredientType ingredientType, /*IngredientModifier[] modifiers,*/
+        int sellPrice,
+        bool canBeAged,
+        bool hasToBeAgedMeal,
+        bool appearsInOrders,
+        bool excludedFromTrends,
+        string spriteSheetName,
+        int spriteX,
+        int spriteY);
 
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
-    private record struct ModRecipeLine( int id, string name, int itemId, Recipe.RecipePage page, Recipe.RecipeGroup recipeGroup, string recipeIngredients, int workstation, int fuel, int time, int outputAmount );
-    
-    public static void AddItemsFromDir(string relativePath, ref Dictionary<int, Item> outDictionary)
+    internal record struct ModRecipeLine(
+        int id,
+        string name,
+        int itemId,
+        Recipe.RecipePage page,
+        Recipe.RecipeGroup recipeGroup,
+        string ingredient1,
+        string ingredient2,
+        string ingredient3,
+        string ingredient4,
+        string ingredient5,
+        int workstation,
+        int fuel,
+        int time,
+        int outputAmount)
+    {
+        public string recipeIngredients()
+        {
+            var results = new[]
+                    { ingredient1 ?? "", ingredient2 ?? "", ingredient3 ?? "", ingredient4 ?? "", ingredient5 }
+                .Where(string.IsNullOrWhiteSpace);
+            return string.Join(',', results);
+        }
+    }
+
+    public static void SeedMakerRecipes(ref Dictionary<int, Recipe> outDictionary, int input, int outputAmount)
+    {
+        const string seedRecipesFile = BepInExPluginPath + "seedMakerRecipesGenerated.csv";
+        if (!File.Exists(seedRecipesFile))
+            File.WriteAllText(seedRecipesFile,
+                "id,name,itemId,workstation,page,recipeGroup,recipeIngredients,fuel,time,outputAmount\n");
+
+        var items = ItemDatabaseAccessor.GetDatabaseSO().items;
+
+        using var csv = new CsvWriter(new StreamWriter(seedRecipesFile), CultureInfo.InvariantCulture);
+        csv.WriteHeader<ModRecipeLine>();
+        csv.NextRecord();
+
+        foreach (var possibleFood in items)
+        {
+            if (possibleFood is not Food { seed: { } seed } food) continue;
+            var foodId = Traverse.Create(possibleFood).Field("id").GetValue<int>();
+            // if (foodId != 255 && foodId != 277) continue;
+            if (string.IsNullOrEmpty(seed.name)) continue;
+            var seedId = Traverse.Create(seed).Field("id").GetValue<int>();
+
+            var recipeLine = new ModRecipeLine
+            {
+                id = 0,
+                name = "Harvest " + seed.name.Replace(seedId + " - ", ""),
+                itemId = seedId,
+                page = Recipe.RecipePage.All,
+                recipeGroup = Recipe.RecipeGroup.None,
+                ingredient1 = string.Format("{0} - \"{1}\" ({2})", foodId, food.name.Replace(foodId + " - ", ""), input),
+                workstation = 1232,
+                fuel = 0,
+                time = 30,
+                outputAmount = outputAmount
+            };
+
+
+            csv.WriteRecord(recipeLine);
+            csv.NextRecord();
+        }
+    }
+
+    public static void GenerateItemIds(List<FileInfo> fileInfos, ref Dictionary<int, Item> outDictionary)
+    {
+        if (fileInfos.Count == 0) return;
+
+        var ids = outDictionary.Keys.ToList();
+        var nextItemId = Plugin.StartingItemId;
+
+
+        if (ids.Count > 0)
+        {
+            ids.Sort();
+            nextItemId = ids.Last() + 1;
+        }
+
+        foreach (var fileInfo in fileInfos)
+        {
+            var result = new List<ModItemLine>();
+            using var csvReader = new CsvReader(
+                new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
+                CultureInfo.InvariantCulture);
+            foreach (var modLine in csvReader.GetRecords<ModItemLine>())
+            {
+                if (modLine.id != 0)
+                {
+                    result.Add(modLine);
+                    continue;
+                }
+
+                var newLine = modLine with { id = nextItemId++ };
+
+                outDictionary.Add(newLine.id, AddItem(newLine));
+                result.Add(newLine);
+            }
+
+            using var csvWriter = new CsvWriter(new StreamWriter(fileInfo.FullName), CultureInfo.InvariantCulture);
+            csvWriter.WriteHeader<ModItemLine>();
+            csvWriter.NextRecord();
+
+            foreach (var modLine in result)
+            {
+                csvWriter.WriteRecord(modLine);
+                csvWriter.NextRecord();
+            }
+        }
+    }
+
+    public static void AddItemsFromDir(string relativePath, ref Dictionary<int, Item> outDictionary,
+        ref List<FileInfo> filesToReviewIds)
     {
         foreach (var file in GetFiles(relativePath))
-            if (file.Name.ToLowerInvariant().Contains("item") && file.Name.EndsWith(".csv"))
-                AddItems(file, ref outDictionary);
+        {
+            if (!file.Name.ToLowerInvariant().Contains("item") || !file.Name.EndsWith(".csv")) continue;
+
+            AddItems(file, ref outDictionary, out var needsIdAssignment);
+
+            if (needsIdAssignment)
+            {
+                filesToReviewIds.Add(file);
+            }
+        }
     }
-    private static void AddItems(FileInfo fileInfo, ref Dictionary<int, Item> moddedItems)
+
+    private static void AddItems(FileInfo fileInfo, ref Dictionary<int, Item> moddedItems, out bool needsIdAssignment)
     {
+        needsIdAssignment = false;
+
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
             CultureInfo.InvariantCulture);
         foreach (var modLine in csv.GetRecords<ModItemLine>())
         {
-            moddedItems.Add(modLine.id, AddItem(modLine));
+            // 0 means the mod needs to generate an id
+            if (modLine.id == 0) needsIdAssignment = true;
+            else moddedItems.Add(modLine.id, AddItem(modLine));
         }
     }
 
@@ -76,13 +215,13 @@ public static class CustomItemHelpers
                              ?? itemDictionaryField
                                  .SetValue(new Dictionary<int, Item>())
                                  .GetValue<Dictionary<int, Item>>();
-        
+
         if (itemDictionary.TryGetValue(itemId, out var result))
         {
             Log.LogError("Item " + result.nameId + " already exists in Database.");
             return result;
         }
-        
+
 
         var tex = CustomSpriteSheets.GetTextureBySpriteSheetName(spriteSheetName);
 
@@ -104,7 +243,7 @@ public static class CustomItemHelpers
         item.hasToBeAgedMeal = mustBeAged;
 
         item.canBeSold = true;
-        item.held = true;
+        item.held = false;
         item.savedAsAPlaceable = false;
 
         // todo:
@@ -135,20 +274,85 @@ public static class CustomItemHelpers
         return directory.GetFiles();
     }
 
-    public static void AddRecipesFromDir(string relativePath, ref Dictionary<int, Recipe> outDictionary)
+    public static void GenerateRecipeIds(List<FileInfo> fileInfos, ref Dictionary<int, Recipe> outDictionary)
+    {
+        if (fileInfos.Count == 0) return;
+
+        var ids = outDictionary.Keys.ToList();
+        var nextRecipeId = Plugin.StartingRecipeId;
+
+        if (ids.Count > 0)
+        {
+            ids.Sort();
+            nextRecipeId = ids.Last() + 1;
+        }
+
+        foreach (var fileInfo in fileInfos)
+        {
+            var result = new List<ModRecipeLine>();
+            using var csvReader = new CsvReader(
+                new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
+                CultureInfo.InvariantCulture);
+            foreach (var modLine in csvReader.GetRecords<ModRecipeLine>())
+            {
+                if (modLine.id != 0 || modLine.itemId == 0)
+                {
+                    result.Add(modLine);
+                    continue;
+                }
+
+                var newLine = modLine with { id = nextRecipeId++ };
+
+                var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
+
+                if (item == null)
+                {
+                    result.Add(modLine);
+                    continue;
+                }
+
+                outDictionary.Add(newLine.id, AddRecipe(newLine, item));
+                result.Add(newLine);
+            }
+
+            using var csvWriter = new CsvWriter(new StreamWriter(fileInfo.FullName), CultureInfo.InvariantCulture);
+            csvWriter.WriteHeader<ModRecipeLine>();
+            csvWriter.NextRecord();
+
+            foreach (var modLine in result)
+            {
+                csvWriter.WriteRecord(modLine);
+                csvWriter.NextRecord();
+            }
+        }
+    }
+
+    public static void AddRecipesFromDir(string relativePath, ref Dictionary<int, Recipe> outDictionary,
+        ref List<FileInfo> filesToReviewIds)
     {
         foreach (var file in GetFiles(relativePath))
             if (file.Name.ToLowerInvariant().Contains("recipe") && file.Name.EndsWith(".csv"))
-                AddRecipes(file, ref outDictionary);
+            {
+                AddRecipes(file, ref outDictionary, out var needsIdAssignment);
+                if (needsIdAssignment)
+                {
+                    filesToReviewIds.Add(file);
+                }
+            }
     }
-    private static void AddRecipes(FileInfo fileInfo, ref Dictionary<int, Recipe> moddedRecipes)
+
+    private static void AddRecipes(FileInfo fileInfo, ref Dictionary<int, Recipe> moddedRecipes,
+        out bool needsIdAssignment)
     {
+        needsIdAssignment = false;
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
             CultureInfo.InvariantCulture);
         foreach (var modLine in csv.GetRecords<ModRecipeLine>())
         {
             var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
-            if (item != null)
+            if (modLine.id == 0)
+                needsIdAssignment = true;
+            else if (item != null)
                 moddedRecipes.Add(modLine.id, AddRecipe(modLine, item));
         }
     }
@@ -156,7 +360,8 @@ public static class CustomItemHelpers
     private static Recipe AddRecipe(ModRecipeLine modRecipe, Item item)
     {
         return AddRecipe(item, modRecipe.id, modRecipe.page,
-            modRecipe.recipeGroup, modRecipe.recipeIngredients, modRecipe.workstation, modRecipe.fuel,
+            modRecipe.recipeGroup, modRecipe.recipeIngredients(), modRecipe.workstation,
+            modRecipe.fuel,
             new GameDate.Time { mins = modRecipe.time }, modRecipe.outputAmount);
     }
 
@@ -169,11 +374,11 @@ public static class CustomItemHelpers
         var recipeDictionaryField = Traverse.Create(recipeDatabaseAccessor)
             .Field(RandomNameHelper.GetField<RecipeDatabaseAccessor, Dictionary<int, Recipe>>().Name);
         var recipeDictionary = recipeDictionaryField
-                                 .GetValue<Dictionary<int, Recipe>>()
-                             // If not initialized, initialize
-                             ?? recipeDictionaryField
-                                 .SetValue(new Dictionary<int, Recipe>())
-                                 .GetValue<Dictionary<int, Recipe>>();
+                                   .GetValue<Dictionary<int, Recipe>>()
+                               // If not initialized, initialize
+                               ?? recipeDictionaryField
+                                   .SetValue(new Dictionary<int, Recipe>())
+                                   .GetValue<Dictionary<int, Recipe>>();
 
         // ReSharper disable once Unity.IncorrectScriptableObjectInstantiation
         var recipe = ScriptableObject.CreateInstance<Recipe>();

@@ -30,6 +30,8 @@ This mod uses 3 file types
   - or any other structure that makes sense to you can be done (if still in the plugins folder)
 
 
+#### If you are having issues with ID assignment [see here](HaveTheModCreateIds.md)
+
 
 ## Start with images
 > For demonstration here are some items from Stardew Valley

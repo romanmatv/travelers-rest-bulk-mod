@@ -1,5 +1,5 @@
-id,name,foodType,spriteSheetName,spriteX,spriteY,containsAlcohol,canBeUsedAsModifier,ingredientType,modifiers,sellPrice,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends
-182000,fried egg ,Food,stardewValleySprites.png,0,3,false,false,None,"",1,false,false,false,false
-182001,scrambled egg ,Food,stardewValleySprites.png,1,3,false,false,None,"",1,false,false,false,false
-182002,pizza ,Food,stardewValleySprites.png,12,3,false,false,None,"",3,false,false,false,false
-182003,thai tea ,Drink,stardewValleySprites.png,3,0,false,true,None,"",1,false,false,false,false
+id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,sellPrice,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends,spriteSheetName,spriteX,spriteY,modifiers
+182000,fried egg ,Food,false,false,None,1,false,false,false,false,stardewValleySprites.png,0,3,
+182001,scrambled egg ,Food,false,false,None,1,false,false,false,false,stardewValleySprites.png,1,3,
+182002,pizza ,Food,false,false,None,3,false,false,false,false,stardewValleySprites.png,12,3,
+182003,thai tea ,Drink,true,false,None,1,false,false,false,false,stardewValleySprites.png,3,0,

@@ -105,14 +105,14 @@ id,name,foodType,spriteSheetName,spriteX,spriteY,containsAlcohol,canBeUsedAsModi
 
 ## Create Recipes
 #### Create a csv with following header
-> [id](#recipe-id),[recipeGroup](#recipeGroup),[itemId](#itemId),[name](#name),[recipeIngredients](#recipeIngredients),[workstation](#workstation),[page](#page),[fuel](#fuel),[time](#time),[outputAmount](#outputAmount)
+> [id](#recipe-id),[recipeGroup](#recipeGroup),[itemId](#itemId),[name](#name),[ingredient1](#ingredient),[ingredient2](#ingredient),[ingredient3](#ingredient),[ingredient4](#ingredient),[ingredient5](#ingredient),[workstation](#workstation),[page](#page),[fuel](#fuel),[time](#time),[outputAmount](#outputAmount)
 
 #### example with explanation to follow
 ```
-id,recipeGroup,itemId,name,recipeIngredients,workstation,page,fuel,time,outputAmount
-182000,Food,182000,sunny side up egg,"1251 - (1) |-27 - (1)",672,Starter,1,10,10
-182001,Food,182001,pizza,"1292 - (10)|-4 - (1)|3010 - (1)",672,PastaRice,10,20,10
-182002,Drink,182002,coffee,"999999 - ""coffee beans"" (2)",672,Drinks,10,20,10
+id,recipeGroup,itemId,name,ingredient1,ingredient2,ingredient3,ingredient4,ingredient5,workstation,page,fuel,time,outputAmount
+182000,Food,182000,sunny side up egg,1251 - (1),-27 - (1),,,,672,Starter,1,10,10
+182001,Food,182001,pizza,1292 - (10),-4 - (1),3010 - (1),,,672,PastaRice,10,20,10
+182002,Drink,182002,coffee,999999 - "coffee beans" (2),,,,,672,Drinks,10,20,10
 ```
 
 - So Sunny Side Up Egg
@@ -259,11 +259,10 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
     ```
 
 
-### recipeIngredients
+### ingredient
 - the recipe defined by its required ingredients.
-  - so it is structured "firstIngredientId - (numberNeeded)"
-  - but you may want more than 1 ingredient, we can do up to 5 ingredients by added a pipe (|)
-    - > firstIngredientId - (numberNeeded)|secondIngredientId - (numberNeeded)|thirdIngredientId - (numberNeeded)|fourthIngredientId - (numberNeeded)|fifthIngredientId - (numberNeeded)
+  - so it is structured "ingredientId - (numberNeeded)"
+  - The game limits recipes to be at most 5 ingredients so the mod supports 5 columns for ingredients (creatively named: ingredient1, ingredient2, ingredient3, ingredient4, ingredient5)
     - the IngredientId is the ItemId and the numberNeeded is the amount of those you require.
       - the IngredientId can also be a Group Id to say any item in this Group/Category like -4 cheese
         - ```
@@ -311,23 +310,23 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
            ```
       - To make all of this I added the option to put labels in the recipeIngredients because seeing
         - ```
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
-          1220 - (10)|1221 - (1)|1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
+          1220 - (10),1221 - (1),1223 - (12)
           ```
       - ends up feeling like a wall of numbers and I don't remember what numbers mean; so, you can put a **"description"**
         - ```
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10)|1221 - "Wild Turkey" (1)|1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
           ```

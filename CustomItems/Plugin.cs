@@ -223,6 +223,9 @@ public class Plugin : BaseUnityPlugin
     [HarmonyPrefix]
     private static void AddNewItems()
     {
+        // Only run the first time
+        if (_moddedItems.Count > 0) return;
+        
         var filesToReviewIds = new List<FileInfo>();
 
         foreach (var folder in Folders)
@@ -236,6 +239,9 @@ public class Plugin : BaseUnityPlugin
     [HarmonyPrefix]
     private static void AddRecipes()
     {
+        // Only run the first time
+        if (_moddedRecipes.Count > 0) return;
+
         var filesToReviewIds = new List<FileInfo>();
         foreach (var folder in Folders)
             CustomItemHelpers.AddRecipesFromDir(folder, ref _moddedRecipes, ref filesToReviewIds);

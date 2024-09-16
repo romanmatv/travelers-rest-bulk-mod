@@ -29,7 +29,9 @@ public static class CustomItemHelpers
         bool canBeUsedAsModifier,
         bool containsAlcohol,
         IngredientType ingredientType, /*IngredientModifier[] modifiers,*/
-        int sellPrice,
+        // int sellPrice,
+        int silverCoins,
+        int copperCoins,
         bool canBeAged,
         bool hasToBeAgedMeal,
         bool appearsInOrders,
@@ -60,9 +62,9 @@ public static class CustomItemHelpers
         public string recipeIngredients()
         {
             var results = new[]
-                    { ingredient1 ?? "", ingredient2 ?? "", ingredient3 ?? "", ingredient4 ?? "", ingredient5 }
-                .Where(string.IsNullOrWhiteSpace);
-            return string.Join(',', results);
+                    { ingredient1, ingredient2, ingredient3, ingredient4, ingredient5 }
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+            return string.Join('|', results);
         }
     }
 
@@ -194,7 +196,11 @@ public static class CustomItemHelpers
             ingredientType: modItem.ingredientType,
             x: modItem.spriteX,
             y: modItem.spriteY,
-            silverPrice: modItem.sellPrice,
+            price: new Price
+            {
+                silver = modItem.silverCoins,
+                copper = modItem.copperCoins,
+            },
             name: modItem.name,
             mustBeAged: modItem.hasToBeAgedMeal,
             spriteSheetName: modItem.spriteSheetName
@@ -202,7 +208,7 @@ public static class CustomItemHelpers
     }
 
     private static Item AddItem(int itemId, FoodType foodType, bool canBeAged, bool canBeUsedAsModifer,
-        bool containsAlcohol, IngredientType ingredientType, int x, int y, int silverPrice, string name,
+        bool containsAlcohol, IngredientType ingredientType, int x, int y, Price price, string name,
         bool mustBeAged, string spriteSheetName)
     {
         var itemDatabaseAccessor = ItemDatabaseAccessor.GetInstance();
@@ -235,7 +241,7 @@ public static class CustomItemHelpers
         item.ingredientType = ingredientType;
         item.modifiers = Array.Empty<IngredientModifier>();
         item.appearsInOrders = true;
-        item.sellPrice = new Price() { silver = silverPrice };
+        item.sellPrice = price;
         item.translationByID = false;
         item.name = name;
         item.nameId = itemId + " - " + name;

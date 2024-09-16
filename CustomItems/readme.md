@@ -20,25 +20,20 @@ The mod will look into all folders provided in the config for any .csv file cont
 
 
 [item list 1](Example/itemList1.csv)
-> (Chocolate Cake, Fried Egg, Omelete)
-
 
 [item list 2](Example/itemList2.csv)
-> (omelete, pizza, thai tea, bubble water)
 
 
 [recipe](Example/recipes.csv)
 ```
     Examples:
-    Chocolate Cake = 1269 - "flour" (5)|202 - "sugar" (2)|1251 - "egg" (1) 
-    Fried Egg = 1251 - "egg" (1)
-    Omelete = 1251 - "egg" (6)|-23 - "milk group" (1)
+    fried egg = "1251 - ""egg"" (1)" + "-27 - ""any oil"" (1)" 
 ```
 
 ## Create an Item file (.csv)
 ```
-    id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,modifiers,sellPrice,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends,spriteSheetName,spriteX,spriteY
-    182002,Fried Egg,Food,false,false,None,None,2,false,false,false,false,NewItem.png,2,0
+    id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,canBeAged,hasToBeAgedMeal,appearsInOrders,excludedFromTrends,spriteSheetName,spriteX,spriteY,modifiers,silverCoins,copperCoins
+    0,fried egg,Food,false,false,None,false,false,false,false,rbk-tr-CustomItems\stardewValleySprites.png,0,3,,1,2
 ```
 ##### foodType
 - Food or Drink or None
@@ -102,8 +97,11 @@ The mod will look into all folders provided in the config for any .csv file cont
     Dairy
 ```
 
-##### sellPrice
-- this is currently whole silver coins.
+##### silverCoins
+- number of silver coins for the sell price (used with copperCoins)
+
+##### copperCoins
+- number of copper coins for the sell price (used with silverCoins)
 
 ## Create a Recipe file (.csv)
     id,name,itemId,workstation,page,recipeGroup,recipeIngredients,fuel,time,outputAmount
@@ -215,6 +213,9 @@ The mod will look into all folders provided in the config for any .csv file cont
 ### Examples - added recipes for Amos' consumables
 
 
+##### Using Yeast and Malts to make more Yeast
 ![img_14.png](img_14.png)
+
+##### Using White Wine to make Vinegar
 ![img_15.png](img_15.png)
 

@@ -1,3 +1,7 @@
+# 0.0.3
+- Update to split silver and copper prices
+- fixing issue I added on the new ingredient column types
+
 # 0.0.2
 - Added Seed recipe generator
 - Changed from "item## - "hint" (10)|item## - "hint" (10)|item## - "hint" (10)|item## - "hint" (10)" to one column per ingredient

@@ -1,3 +1,7 @@
+# 0.0.4
+- Added more safety to mod
+- 
+
 # 0.0.3
 - Update to split silver and copper prices
 - fixing issue I added on the new ingredient column types

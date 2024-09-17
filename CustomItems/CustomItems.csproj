@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>rbk-tr-CustomItems</AssemblyName>
     <Description>Ability to pull items from CSV/PNG and add into game, currently only tested with Food/Drink/Recipes</Description>
-    <Version>0.0.3</Version>
+    <Version>0.0.4</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <BaseOutputPath>..\output</BaseOutputPath>

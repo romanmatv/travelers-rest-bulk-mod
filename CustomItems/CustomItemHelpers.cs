@@ -10,6 +10,7 @@ using CsvHelper;
 using HarmonyLib;
 using RestlessMods;
 using UnityEngine;
+
 // ReSharper disable UseStringInterpolation
 
 namespace CustomItems;
@@ -18,55 +19,6 @@ public static class CustomItemHelpers
 {
     internal const string BepInExPluginPath = "BepInEx/plugins/";
     internal static ManualLogSource Log;
-
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
-    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
-    internal record struct ModItemLine(
-        int id,
-        string name,
-        FoodType foodType,
-        bool canBeUsedAsModifier,
-        bool containsAlcohol,
-        IngredientType ingredientType, /*IngredientModifier[] modifiers,*/
-        // int sellPrice,
-        int silverCoins,
-        int copperCoins,
-        bool canBeAged,
-        bool hasToBeAgedMeal,
-        bool appearsInOrders,
-        bool excludedFromTrends,
-        string spriteSheetName,
-        int spriteX,
-        int spriteY);
-
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
-    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
-    internal record struct ModRecipeLine(
-        int id,
-        string name,
-        int itemId,
-        Recipe.RecipePage page,
-        Recipe.RecipeGroup recipeGroup,
-        string ingredient1,
-        string ingredient2,
-        string ingredient3,
-        string ingredient4,
-        string ingredient5,
-        int workstation,
-        int fuel,
-        int time,
-        int outputAmount)
-    {
-        public string recipeIngredients()
-        {
-            var results = new[]
-                    { ingredient1, ingredient2, ingredient3, ingredient4, ingredient5 }
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-            return string.Join('|', results);
-        }
-    }
 
     public static void SeedMakerRecipes(ref Dictionary<int, Recipe> outDictionary, int input, int outputAmount)
     {
@@ -96,13 +48,13 @@ public static class CustomItemHelpers
                 itemId = seedId,
                 page = Recipe.RecipePage.All,
                 recipeGroup = Recipe.RecipeGroup.None,
-                ingredient1 = string.Format("{0} - \"{1}\" ({2})", foodId, food.name.Replace(foodId + " - ", ""), input),
+                ingredient1 =
+                    string.Format("{0} - \"{1}\" ({2})", foodId, food.name.Replace(foodId + " - ", ""), input),
                 workstation = 1232,
                 fuel = 0,
                 time = 30,
                 outputAmount = outputAmount
             };
-
 
             csv.WriteRecord(recipeLine);
             csv.NextRecord();
@@ -139,7 +91,16 @@ public static class CustomItemHelpers
 
                 var newLine = modLine with { id = nextItemId++ };
 
-                outDictionary.Add(newLine.id, AddItem(newLine));
+                try
+                {
+                    outDictionary.Add(newLine.id, AddItem(newLine));
+                }
+                catch (Exception _)
+                {
+                    Log.LogError(
+                        string.Format("item '{0}' couldn't be added (exception: {1})", modLine.name, _.Message));
+                }
+
                 result.Add(newLine);
             }
 
@@ -164,10 +125,7 @@ public static class CustomItemHelpers
 
             AddItems(file, ref outDictionary, out var needsIdAssignment);
 
-            if (needsIdAssignment)
-            {
-                filesToReviewIds.Add(file);
-            }
+            if (needsIdAssignment) filesToReviewIds.Add(file);
         }
     }
 
@@ -178,32 +136,37 @@ public static class CustomItemHelpers
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
             CultureInfo.InvariantCulture);
         foreach (var modLine in csv.GetRecords<ModItemLine>())
-        {
-            // 0 means the mod needs to generate an id
-            if (modLine.id == 0) needsIdAssignment = true;
-            else moddedItems.Add(modLine.id, AddItem(modLine));
-        }
+            try
+            {
+                // 0 means the mod needs to generate an id
+                if (modLine.id == 0) needsIdAssignment = true;
+                else moddedItems.Add(modLine.id, AddItem(modLine));
+            }
+            catch (Exception _)
+            {
+                Log.LogError(string.Format("item '{0}' couldn't be added (exception: {1})", modLine.name, _.Message));
+            }
     }
 
     private static Item AddItem(ModItemLine modItem)
     {
         return AddItem(
-            itemId: modItem.id,
-            foodType: modItem.foodType,
-            canBeAged: modItem.canBeAged,
-            canBeUsedAsModifer: modItem.canBeUsedAsModifier,
-            containsAlcohol: modItem.containsAlcohol,
-            ingredientType: modItem.ingredientType,
-            x: modItem.spriteX,
-            y: modItem.spriteY,
-            price: new Price
+            modItem.id,
+            modItem.foodType,
+            modItem.canBeAged,
+            modItem.canBeUsedAsModifier,
+            modItem.containsAlcohol,
+            modItem.ingredientType,
+            modItem.spriteX,
+            modItem.spriteY,
+            new Price
             {
                 silver = modItem.silverCoins,
-                copper = modItem.copperCoins,
+                copper = modItem.copperCoins
             },
-            name: modItem.name,
-            mustBeAged: modItem.hasToBeAgedMeal,
-            spriteSheetName: modItem.spriteSheetName
+            modItem.name,
+            modItem.hasToBeAgedMeal,
+            modItem.spriteSheetName
         );
     }
 
@@ -227,7 +190,6 @@ public static class CustomItemHelpers
             Log.LogError("Item " + result.nameId + " already exists in Database.");
             return result;
         }
-
 
         var tex = CustomSpriteSheets.GetTextureBySpriteSheetName(spriteSheetName);
 
@@ -317,7 +279,16 @@ public static class CustomItemHelpers
                     continue;
                 }
 
-                outDictionary.Add(newLine.id, AddRecipe(newLine, item));
+                try
+                {
+                    outDictionary.Add(newLine.id, AddRecipe(newLine, item));
+                }
+                catch (Exception _)
+                {
+                    Log.LogError(string.Format("recipe '{0}' couldn't be added (exception: {1})", modLine.name,
+                        _.Message));
+                }
+
                 result.Add(newLine);
             }
 
@@ -340,10 +311,7 @@ public static class CustomItemHelpers
             if (file.Name.ToLowerInvariant().Contains("recipe") && file.Name.EndsWith(".csv"))
             {
                 AddRecipes(file, ref outDictionary, out var needsIdAssignment);
-                if (needsIdAssignment)
-                {
-                    filesToReviewIds.Add(file);
-                }
+                if (needsIdAssignment) filesToReviewIds.Add(file);
             }
     }
 
@@ -354,13 +322,18 @@ public static class CustomItemHelpers
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
             CultureInfo.InvariantCulture);
         foreach (var modLine in csv.GetRecords<ModRecipeLine>())
-        {
-            var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
-            if (modLine.id == 0)
-                needsIdAssignment = true;
-            else if (item != null)
-                moddedRecipes.Add(modLine.id, AddRecipe(modLine, item));
-        }
+            try
+            {
+                var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
+                if (modLine.id == 0)
+                    needsIdAssignment = true;
+                else if (item != null)
+                    moddedRecipes.Add(modLine.id, AddRecipe(modLine, item));
+            }
+            catch (Exception _)
+            {
+                Log.LogError(string.Format("recipe '{0}' couldn't be added (exception: {1})", modLine.name, _.Message));
+            }
     }
 
     private static Recipe AddRecipe(ModRecipeLine modRecipe, Item item)
@@ -402,13 +375,11 @@ public static class CustomItemHelpers
 
         var recipeIngredientLists = new List<RecipeIngredient>();
         for (var m = r.Match(recipeIngredientStrings); m.Success; m = m.NextMatch())
-        {
             recipeIngredientLists.Add(new RecipeIngredient
             {
                 amount = int.Parse(m.Groups["itemAmount"].Value),
-                item = ItemDatabaseAccessor.GetItem(int.Parse(m.Groups["itemId"].Value)),
+                item = ItemDatabaseAccessor.GetItem(int.Parse(m.Groups["itemId"].Value))
             });
-        }
 
         var recipeIngredients = recipeIngredientLists.ToArray();
 
@@ -419,10 +390,10 @@ public static class CustomItemHelpers
         recipe.recipeGroup = recipeGroup;
         recipe.fuel = fuel;
         recipe.time = time;
-        recipe.output = new ItemAmount()
+        recipe.output = new ItemAmount
         {
             item = item,
-            amount = outputAmount,
+            amount = outputAmount
         };
         recipe.ingredientsNeeded = recipeIngredients;
 
@@ -445,5 +416,54 @@ public static class CustomItemHelpers
         RecipesManager.AddFavoriteRecipe(recipe.id);
 
         return recipe;
+    }
+
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
+    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
+    internal record struct ModItemLine(
+        int id,
+        string name,
+        FoodType foodType,
+        bool canBeUsedAsModifier,
+        bool containsAlcohol,
+        IngredientType ingredientType, /*IngredientModifier[] modifiers,*/
+        // int sellPrice,
+        int silverCoins,
+        int copperCoins,
+        bool canBeAged,
+        bool hasToBeAgedMeal,
+        bool appearsInOrders,
+        bool excludedFromTrends,
+        string spriteSheetName,
+        int spriteX,
+        int spriteY);
+
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
+    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
+    internal record struct ModRecipeLine(
+        int id,
+        string name,
+        int itemId,
+        Recipe.RecipePage page,
+        Recipe.RecipeGroup recipeGroup,
+        string ingredient1,
+        string ingredient2,
+        string ingredient3,
+        string ingredient4,
+        string ingredient5,
+        int workstation,
+        int fuel,
+        int time,
+        int outputAmount)
+    {
+        public string recipeIngredients()
+        {
+            var results = new[]
+                    { ingredient1, ingredient2, ingredient3, ingredient4, ingredient5 }
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+            return string.Join('|', results);
+        }
     }
 }

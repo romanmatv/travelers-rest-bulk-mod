@@ -15,6 +15,7 @@ namespace ImprovedClicks
         public static bool ModTrigger(int PlayerId)
         {
             return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
+                   || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
                    || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
                        .Any(joystick => joystick.GetButton(_modGamepadHotKey.Value));
         }
@@ -31,6 +32,7 @@ namespace ImprovedClicks
             FasterShopping.Awake();
             FasterWaterWell.Awake();
             OtherSortingOptions.Awake();
+            TapRefiller.Awake();
             
             // Plugin startup logic
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");

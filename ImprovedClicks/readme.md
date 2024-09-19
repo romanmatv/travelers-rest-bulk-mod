@@ -10,3 +10,6 @@ You can buy X Seeds in oneClick.
 You can add X Kindling to the fire.
 You can fill all empty buckets with water.
 You can sort by sell price.
+You can refill Key/Tap with existing item if you have any, Hold ModTrigger and exit Tap.
+
+![fastRefill.gif](fastRefill.gif)

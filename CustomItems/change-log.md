@@ -1,3 +1,6 @@
+# 0.0.5
+- added even more safety to the mod (bad headers in file)
+
 # 0.0.4
 - Added more safety to mod
 - 

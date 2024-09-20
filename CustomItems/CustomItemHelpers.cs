@@ -135,7 +135,18 @@ public static class CustomItemHelpers
 
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
             CultureInfo.InvariantCulture);
-        foreach (var modLine in csv.GetRecords<ModItemLine>())
+        IEnumerable<ModItemLine> records;
+        try
+        {
+            records = csv.GetRecords<ModItemLine>();
+        }
+        catch (Exception _)
+        {
+            Log.LogError(string.Format("item file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+            return;
+        }
+        
+        foreach (var modLine in records)
             try
             {
                 // 0 means the mod needs to generate an id
@@ -260,8 +271,18 @@ public static class CustomItemHelpers
             var result = new List<ModRecipeLine>();
             using var csvReader = new CsvReader(
                 new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-                CultureInfo.InvariantCulture);
-            foreach (var modLine in csvReader.GetRecords<ModRecipeLine>())
+                CultureInfo.InvariantCulture);IEnumerable<ModRecipeLine> records;
+            try
+            {
+                records = csvReader.GetRecords<ModRecipeLine>();
+            }
+            catch (Exception _)
+            {
+                Log.LogError(string.Format("recipe file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+                return;
+            }
+        
+            foreach (var modLine in records)
             {
                 if (modLine.id != 0 || modLine.itemId == 0)
                 {
@@ -321,7 +342,19 @@ public static class CustomItemHelpers
         needsIdAssignment = false;
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
             CultureInfo.InvariantCulture);
-        foreach (var modLine in csv.GetRecords<ModRecipeLine>())
+
+        IEnumerable<ModRecipeLine> records;
+        try
+        {
+            records = csv.GetRecords<ModRecipeLine>();
+        }
+        catch (Exception _)
+        {
+            Log.LogError(string.Format("recipe file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+            return;
+        }
+        
+        foreach (var modLine in records)
             try
             {
                 var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
@@ -413,7 +446,7 @@ public static class CustomItemHelpers
         // Just make all recipes auto unlocked for now
         RecipesManager.UnlockRecipe(recipe, false);
         // Add to Favorite for ease of use
-        RecipesManager.AddFavoriteRecipe(recipe.id);
+        // RecipesManager.AddFavoriteRecipe(recipe.id);
 
         return recipe;
     }

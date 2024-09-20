@@ -166,47 +166,47 @@ The mod will look into all folders provided in the config for any .csv file cont
 - groupIds are also supported (yes they are negative):
 
 ```
-    -45 - Beer Group
-    -44 - Wine Group
-    -43 - Grape Juice
-    -42 - Roasted Hops
-    -41 - Black Hops
-    -40 - Light Hops
-    -39 - Roasted Gray Malt
-    -38 - Roasted Light Malt
-    -37 - Gray Malt
-    -36 - Light Malt
-    -35 - Mince and Seafood
-    -34 - Mince
-    -33 - Crab Group
-    -32 - Cephalopod
-    -31 - Citrus
-    -30 - Pickles Group
-    -29 - Lemon Lime
-    -28 - Cake Flavors
-    -27 - Oily
-    -23 - Milk Group
-    -22 - Ribs Group
-    -21 - Fat Group
-    -19 - White Fish
-    -18 - Fish and Seafood
-    -17 - Blue Fish
-    -16 - Seafood Group
-    -15 - Group Meat Vegetables or Fish
-    -14 - Nuts
-    -13 - Tea Leaves
-    -12 - Legumes Group
-    -11 - Meat and Fish Group
-    -10 - Mushrooms Group
-    -9 - Vegetables Group
-    -8 - Fish Group
-    -7 - Seeds Group
-    -6 - Dishes Group
-    -5 - Bread Group
-    -4 - Cheese Group
-    -3 - Cereal Group
-    -2 - Fruit Group
-    -1 - Meat Group
+    -45 - "Beer Group"
+    -44 - "Wine Group"
+    -43 - "Grape Juice"
+    -42 - "Roasted Hops"
+    -41 - "Black Hops"
+    -40 - "Light Hops"
+    -39 - "Roasted Gray Malt"
+    -38 - "Roasted Light Malt"
+    -37 - "Gray Malt"
+    -36 - "Light Malt"
+    -35 - "Mince and Seafood"
+    -34 - "Mince"
+    -33 - "Crab Group"
+    -32 - "Cephalopod"
+    -31 - "Citrus"
+    -30 - "Pickles Group"
+    -29 - "Lemon Lime"
+    -28 - "Cake Flavors"
+    -27 - "Oily"
+    -23 - "Milk Group"
+    -22 - "Ribs Group"
+    -21 - "Fat Group"
+    -19 - "White Fish"
+    -18 - "Fish and Seafood"
+    -17 - "Blue Fish"
+    -16 - "Seafood Group"
+    -15 - "Group Meat Vegetables or Fish"
+    -14 - "Nuts"
+    -13 - "Tea Leaves"
+    -12 - "Legumes Group"
+    -11 - "Meat and Fish Group"
+    -10 - "Mushrooms Group"
+    -9 - "Vegetables Group"
+    -8 - "Fish Group"
+    -7 - "Seeds Group"
+    -6 - "Dishes Group"
+    -5 - "Bread Group"
+    -4 - "Cheese Group"
+    -3 - "Cereal Group"
+    -2 - "Fruit Group"
+    -1 - "Meat Group"
  ```
 
 

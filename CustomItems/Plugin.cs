@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using CsvHelper;
 using HarmonyLib;
 using RestlessMods;
@@ -36,45 +35,43 @@ namespace CustomItems;
     1532 - Cocktail Table
          */
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public class Plugin : BaseUnityPlugin
+public class Plugin : ModBase
 {
-    private static ManualLogSource _log;
-    private static ConfigFile _configFile;
-
-    private static ConfigEntry<bool> Debugging => _configFile.Bind("DebuggingTools", "isEnabled", true,
+    private static ConfigEntry<bool> Debugging => _config.Bind("DebuggingTools", "isEnabled", true,
         "whether or not you want to debug item ids");
 
-    private static ConfigEntry<bool> RecipeTesting => _configFile.Bind("DebuggingTools", "recipeTesting", true,
+    private static ConfigEntry<bool> RecipeTesting => _config.Bind("DebuggingTools", "recipeTesting", true,
         "whether or not you want to output the item into a testRecipe.csv file");
 
-    private static ConfigEntry<KeyCode> HotKey => _configFile.Bind("DebuggingTools", "HotKey", KeyCode.F1,
+    private static ConfigEntry<KeyCode> HotKey => _config.Bind("DebuggingTools", "HotKey", KeyCode.F1,
         "Debugging tool: Key to send chest items to output file");
 
-    private static ConfigEntry<bool> CraftAllSeeds => _configFile.Bind("Seed Maker", "isEnabled", false,
+    private static ConfigEntry<bool> CraftAllSeeds => _config.Bind("Seed Maker", "isEnabled", false,
         "Whether or not you want seed making recipes generated and put in a file for review.");
 
-    private static ConfigEntry<int> SeedInput => _configFile.Bind("Seed Maker", "input",
+    private static ConfigEntry<int> SeedInput => _config.Bind("Seed Maker", "input",
         5, "number of food to make seeds");
-    private static ConfigEntry<int> SeedOutput => _configFile.Bind("Seed Maker", "output",
+
+    private static ConfigEntry<int> SeedOutput => _config.Bind("Seed Maker", "output",
         10, "number of seeds to make");
 
-    private static string[] Folders => _configFile.Bind(
+    private static string[] Folders => _config.Bind(
         "CustomItems",
         "folders",
         "rbk-tr-CustomItems",
         "| separated list of folders that store Items/Recipes/Sprites, this is relative path inside the BepInEx/plugins folder"
     ).Value.Split('|');
-    
-    internal static int StartingItemId => _configFile.Bind("CustomItems", "FirstItemId", 182_000,
-    "Id to start for custom items (game is using -60 to 99,999 so aim outside of that").Value;
-    
-    internal static int StartingRecipeId => _configFile.Bind("CustomItems", "FirstRecipeId", 2_000,
-    "Id to start for custom recipes (game is using 0 to 1, 551 so aim outside of that").Value;
+
+    internal static int StartingItemId => _config.Bind("CustomItems", "FirstItemId", 182_000,
+        "Id to start for custom items (game is using -60 to 99,999 so aim outside of that").Value;
+
+    internal static int StartingRecipeId => _config.Bind("CustomItems", "FirstRecipeId", 2_000,
+        "Id to start for custom recipes (game is using 0 to 1, 551 so aim outside of that").Value;
 
     internal static ConfigEntry<bool> AssignIds =>
-        _configFile.Bind("CustomItems", "AssignIds", false, "If you want the mod to replace id=0 with an unique id not being used enable this.");
-    
-    
+        _config.Bind("CustomItems", "AssignIds", false,
+            "If you want the mod to replace id=0 with an unique id not being used enable this.");
+
 
             //
         // // ReSharper disable once Unity.IncorrectMonoBehaviourInstantiation
@@ -136,13 +133,14 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        Setup(typeof(Plugin), PluginInfo.PLUGIN_GUID);
         Harmony.CreateAndPatchAll(typeof(Plugin));
-        _configFile = Config;
-        _log = Logger;
-        CustomItemHelpers.Log = _log;
+        CustomItemHelpers.Log = Log;
 
-        _log.LogDebug(string.Format("custom items start at {0}, custom recipes start at {1}", StartingItemId, StartingRecipeId));
-        _log.LogDebug(string.Format("seed-maker {0} ({1} => {2})", CraftAllSeeds.Value, SeedInput.Value, SeedOutput.Value));
+        Log.LogDebug(string.Format("custom items start at {0}, custom recipes start at {1}", StartingItemId,
+            StartingRecipeId));
+        Log.LogDebug(string.Format("seed-maker {0} ({1} => {2})", CraftAllSeeds.Value, SeedInput.Value,
+            SeedOutput.Value));
 
         Logger.LogInfo("\thave " + (Folders?.Length ?? 0) + " folder(s) to review");
 
@@ -192,7 +190,7 @@ public class Plugin : BaseUnityPlugin
                 .ToArray();
 
             foreach (var str in strings)
-                _log.LogInfo(str);
+                    Log.LogInfo(str);
 
             if (RecipeTesting.Value)
             {
@@ -225,12 +223,12 @@ public class Plugin : BaseUnityPlugin
     {
         // Only run the first time
         if (_moddedItems.Count > 0) return;
-        
+
         var filesToReviewIds = new List<FileInfo>();
 
         foreach (var folder in Folders)
             CustomItemHelpers.AddItemsFromDir(folder, ref _moddedItems, ref filesToReviewIds);
-        
+
         if (AssignIds.Value)
             CustomItemHelpers.GenerateItemIds(filesToReviewIds, ref _moddedItems);
     }

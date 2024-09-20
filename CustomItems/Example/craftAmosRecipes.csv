@@ -1,6 +1,6 @@
-id,recipeGroup,itemId,name,recipeIngredients,workstation,page,fuel,time,outputAmount
-182100,Food,1295,White Vinegar,"166 - ""white wine"" (10)",1380,Starter,1,10,5
-182101,Food,1298,Kitchen Yeast,"-36 - ""Malt from Barley or Wheat"" (1)|1303 - ""Bucket with Water"" (1)",673,Starter,20,120,10
-182102,Food,20,itemAleYeast,"20 - ""itemAleYeast"" (3)|-36 - ""Malt from Barley or Wheat"" (1)|1303 - ""Bucket with Water"" (1)",673,Starter,20,120,5
-182103,Food,74,itemLagerYeast,"74 - ""itemLagerYeast"" (3)|-36 - ""Malt from Barley or Wheat"" (1)|1303 - ""Bucket with Water"" (1)",673,Starter,20,120,5
-182104,None,1299,Empty Jar,"1378 - ""Pickles in Vinegar"" (5)",1380,Starter,0,10,5
+id,recipeGroup,itemId,name,workstation,page,fuel,time,outputAmount,ingredient1,ingredient2,ingredient3,ingredient4,ingredient5
+182100,Food,1295,White Vinegar,1380,Starter,1,10,5,"166 - ""white wine"" (10)",,,,,
+182101,Food,1298,Kitchen Yeast,673,Starter,20,120,10,"-36 - ""Malt from Barley or Wheat"" (1)","1303 - ""Bucket with Water"" (1)",,,
+182102,Food,20,itemAleYeast,673,Starter,20,120,5,"20 - ""itemAleYeast"" (3)","-36 - ""Malt from Barley or Wheat"" (1)","1303 - ""Bucket with Water"" (1)",,
+182103,Food,74,itemLagerYeast,673,Starter,20,120,5,"74 - ""itemLagerYeast"" (3)","-36 - ""Malt from Barley or Wheat"" (1)","-36 - ""Malt from Barley or Wheat"" (1)",,
+182104,None,1299,Empty Jar,1380,Starter,0,10,5,"1378 - ""Pickles in Vinegar"" (5)",,,,

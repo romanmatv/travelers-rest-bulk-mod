@@ -110,9 +110,9 @@ id,name,foodType,spriteSheetName,spriteX,spriteY,containsAlcohol,canBeUsedAsModi
 #### example with explanation to follow
 ```
 id,recipeGroup,itemId,name,ingredient1,ingredient2,ingredient3,ingredient4,ingredient5,workstation,page,fuel,time,outputAmount
-182000,Food,182000,sunny side up egg,1251 - (1),-27 - (1),,,,672,Starter,1,10,10
-182001,Food,182001,pizza,1292 - (10),-4 - (1),3010 - (1),,,672,PastaRice,10,20,10
-182002,Drink,182002,coffee,999999 - "coffee beans" (2),,,,,672,Drinks,10,20,10
+182000,Food,182000,sunny side up egg,1x 1251,1x -27,,,,672,Starter,1,10,10
+182001,Food,182001,pizza,1x 1292,1x -4,1x 3010,,,672,PastaRice,10,20,10
+182002,Drink,182002,coffee,2x 999999 "coffee beans",,,,,672,Drinks,10,20,10
 ```
 
 - So Sunny Side Up Egg
@@ -172,6 +172,7 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
 ### Item id
 - a **UNIQUE** number for this item, note the game uses values up to 99,999 as of Sept 2024 so use bigger numbers
   - I picked to start at 182000 because **R**estless**B**arkeep => 18th letter + 2nd letter => 182 + some zeros to not stop on other peoples toes
+  - if you leave this as 0 the mod will assign a value for you
 
 ### name
 - name you want to see in the game (translations in the works)
@@ -180,7 +181,7 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
 - Values are (Food/Drink/None) so is it food drink or something else
 
 ### canBeUsedAsModifier
-- can this item be used as an inderdient in another food? (think watermelon is a Fruity ingredient to Cocktails)
+- can this item be used as an ingredient in another food? (think watermelon is a Fruity ingredient to Cocktails)
 
 ### modifiers
 - when used as an ingredient what is the modifier it will add: (Fruity/Citrus/Sweet/Vanilla/Caramel/Herbal/Hoppy/Bitter/Juicy/Meaty/Fishy/Starchy/Veggie/Cheesy/Sour/Spicy/Aromatic/Seedy/Aged/Dairy)
@@ -211,13 +212,15 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
 
 ### Recipe id
 - a **UNIQUE** number for this recipe
-  - NOTE: these examples have the recipe and the items with the same value but it does not matter if they do or do not match.
+  - NOTE: these examples have the recipe and the items with the same value; but, it does not matter if they do or do not match.
+  - if you leave it 0 and tell the mod to assign ids it can assign unique ids after recipes with ids are assigned
 
 ### recipeGroup
 - where this recipe should be grouped: (None/Food/Drink/Wood/Stone/Metal)
 
 ### itemId
 - the unique id of the item this recipe will create
+  - if you leave this id as 0 the mod will lookup for a MODDED item with the matching name (the game using english and spanish for item names so for built in game items only use their ids please)
 
 ### outputAmount
 - the number of items to have the recipe created
@@ -232,7 +235,7 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
 - how much fuel is used
 
 ### time
-- how many minutes to complete (probably best to keep it multiplies of 5 )
+- how many minutes to complete (probably best to keep it multiplies of 5)
 
 ### workstation
 - id to the workstation/crafter that can use this recipe
@@ -261,7 +264,8 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
 
 ### ingredient
 - the recipe defined by its required ingredients.
-  - so it is structured "ingredientId - (numberNeeded)"
+  - so it is structured "#x ingredientId"
+        - OLD: so it is structured "ingredientId - (numberNeeded)"
   - The game limits recipes to be at most 5 ingredients so the mod supports 5 columns for ingredients (creatively named: ingredient1, ingredient2, ingredient3, ingredient4, ingredient5)
     - the IngredientId is the ItemId and the numberNeeded is the amount of those you require.
       - the IngredientId can also be a Group Id to say any item in this Group/Category like -4 cheese
@@ -310,23 +314,23 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
            ```
       - To make all of this I added the option to put labels in the recipeIngredients because seeing
         - ```
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
-          1220 - (10),1221 - (1),1223 - (12)
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
+          10x 1220,1x 1221,12x 1223
           ```
       - ends up feeling like a wall of numbers and I don't remember what numbers mean; so, you can put a **"description"**
         - ```
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
-          1220 - "Chocolate" (10),1221 - "Wild Turkey" (1),1223 - "Christman Carrot" (12)
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
+          10x 1220 "Chocolate",1x 1221 "Wild Turkey",12x 1223 "Christman Carrot"
           ```

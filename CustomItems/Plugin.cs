@@ -149,6 +149,7 @@ public class Plugin : ModBase
     }
 
     private static Dictionary<int, Item> _moddedItems = new();
+    private static Dictionary<string, int> _moddedItemNameToId = new();
     private static Dictionary<int, Recipe> _moddedRecipes = new();
 
 
@@ -227,7 +228,7 @@ public class Plugin : ModBase
         var filesToReviewIds = new List<FileInfo>();
 
         foreach (var folder in Folders)
-            CustomItemHelpers.AddItemsFromDir(folder, ref _moddedItems, ref filesToReviewIds);
+            CustomItemHelpers.AddItemsFromDir(folder, ref _moddedItems, ref _moddedItemNameToId, ref filesToReviewIds);
 
         if (AssignIds.Value)
             CustomItemHelpers.GenerateItemIds(filesToReviewIds, ref _moddedItems);
@@ -242,7 +243,7 @@ public class Plugin : ModBase
 
         var filesToReviewIds = new List<FileInfo>();
         foreach (var folder in Folders)
-            CustomItemHelpers.AddRecipesFromDir(folder, ref _moddedRecipes, ref filesToReviewIds);
+            CustomItemHelpers.AddRecipesFromDir(folder, ref _moddedRecipes, ref _moddedItemNameToId, ref filesToReviewIds);
 
         if (CraftAllSeeds.Value)
         {
@@ -252,6 +253,6 @@ public class Plugin : ModBase
         
         // replace 0's as needed
         if (AssignIds.Value)
-            CustomItemHelpers.GenerateRecipeIds(filesToReviewIds, ref _moddedRecipes);
+            CustomItemHelpers.GenerateRecipeIds(filesToReviewIds, ref _moddedRecipes, ref _moddedItemNameToId);
     }
 }

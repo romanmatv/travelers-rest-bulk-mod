@@ -162,6 +162,11 @@ public abstract class RandomNameHelper
             });
         }
     }
+
+    public static int GetItemId(Item item)
+    {
+        return HarmonyLib.Traverse.Create(item).Field("id").GetValue<int>();
+    }
 }
 
 public class SubModBase

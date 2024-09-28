@@ -1,6 +1,6 @@
 id,recipeGroup,itemId,name,ingredient1,ingredient2,ingredient3,ingredient4,ingredient5,workstation,page,fuel,time,outputAmount
-0,Food,0,fried egg ,"1251 - ""egg"" (1)","-27 - ""any oil"" (1)",,,,672,Starter,1,10,10
-0,Food,0,scrambled egg ,"1251 - ""egg"" (1)","-23 - ""any milk"" (1)",,,,672,Starter,2,10,10
-0,Food,0,pizza ,"1292 - ""flour"" (10)","-4 - ""any cheese"" (1)","3010 - ""tomato"" (1)","-15 - ""any meat/veg/fish"" (1)",,672,PastaRice,10,20,10
-0,Drink,0,thai tea ,"3056 - ""black tea leaves"" (1)","-23 - ""any milk"" (1)",,,,675,Drinks,0,10,20
-0,Drink,0,Fruit tea,"-13 - ""tea leaves"" (1)","-2 - ""any fruit"" (1)",,,,675,Drinks,0,10,20
+0,Food,0,fried egg ,"1x 1251 ""egg""","1x -27 ""any oil""",,,,672,Starter,1,10,10
+0,Food,0,scrambled egg ,"1x 1251 ""egg""","1x -23 ""any milk""",,,,672,Starter,2,10,10
+0,Food,0,pizza ,"10x 1292 ""flour""","1x -4 ""any cheese""","1x 3010 ""tomato""","1x -15 ""any meat/veg/fish""",,672,PastaRice,10,20,10
+0,Drink,0,thai tea ,"1x 3056 ""black tea leaves""","1x -23 ""any milk""",,,,675,Drinks,0,10,20
+0,Drink,0,Fruit tea,"1x -13 ""tea leaves""","1x -2 ""any fruit""",,,,675,Drinks,0,10,20

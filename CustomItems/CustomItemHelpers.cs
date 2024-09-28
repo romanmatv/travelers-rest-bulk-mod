@@ -20,6 +20,52 @@ public static class CustomItemHelpers
     internal const string BepInExPluginPath = "BepInEx/plugins/";
     internal static ManualLogSource Log;
 
+    private static Regex Id_Note_Amount = new Regex(
+        """(?<itemId>[-]*\d+) - (\"(?<itemName>\D*)\" ){0,1}\((?<itemAmount>\d+)\)""", RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(150));
+
+    // 10x -2 "any fruit"
+    private static Regex Amount_Id_Note = new Regex(
+        """(?<itemAmount>\d+)x (?<itemId>[-]{0,1}\d+)(\s)*(\"(?<itemName>\D*)\"){0,1}""", RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(150));
+
+    private static ItemDatabase _itemDatabase;
+
+    private static ItemDatabase ItemDatabase
+    {
+        get
+        {
+            if (_itemDatabase == null)
+            {
+                _itemDatabase = ItemDatabaseAccessor.GetDatabaseSO();
+            }
+
+            return _itemDatabase;
+        }
+    }
+
+    private static Dictionary<int, Item> _itemDictionary;
+
+    private static Dictionary<int, Item> ItemDictionary
+    {
+        get
+        {
+            if (_itemDictionary == null)
+            {
+                var itemDictionaryField = Traverse.Create(ItemDatabaseAccessor.GetInstance())
+                    .Field(RandomNameHelper.GetField<ItemDatabaseAccessor, Dictionary<int, Item>>().Name);
+                _itemDictionary = itemDictionaryField
+                                      .GetValue<Dictionary<int, Item>>()
+                                  // If not initialized, initialize
+                                  ?? itemDictionaryField
+                                      .SetValue(new Dictionary<int, Item>())
+                                      .GetValue<Dictionary<int, Item>>();
+            }
+
+            return _itemDictionary;
+        }
+    }
+
     public static void SeedMakerRecipes(ref Dictionary<int, Recipe> outDictionary, int input, int outputAmount)
     {
         const string seedRecipesFile = BepInExPluginPath + "seedMakerRecipesGenerated.csv";
@@ -49,7 +95,8 @@ public static class CustomItemHelpers
                 page = Recipe.RecipePage.All,
                 recipeGroup = Recipe.RecipeGroup.None,
                 ingredient1 =
-                    string.Format("{0} - \"{1}\" ({2})", foodId, food.name.Replace(foodId + " - ", ""), input),
+                    // string.Format("{0} - \"{1}\" ({2})", foodId, food.name.Replace(foodId + " - ", ""), input),
+                    string.Format("{2}x {0} \"{1}\"", foodId, food.name.Replace(foodId + " - ", ""), input),
                 workstation = 1232,
                 fuel = 0,
                 time = 30,
@@ -98,7 +145,8 @@ public static class CustomItemHelpers
                 catch (Exception _)
                 {
                     Log.LogError(
-                        string.Format("item '{0}' couldn't be added (exception: {1})", modLine.name, _.Message));
+                        string.Format("item '{0}'{2} couldn't be added (exception: {1})", modLine.name, _.Message,
+                            modLine.id));
                 }
 
                 result.Add(newLine);
@@ -117,19 +165,21 @@ public static class CustomItemHelpers
     }
 
     public static void AddItemsFromDir(string relativePath, ref Dictionary<int, Item> outDictionary,
+        ref Dictionary<string, int> itemNameToIdDictionary,
         ref List<FileInfo> filesToReviewIds)
     {
         foreach (var file in GetFiles(relativePath))
         {
             if (!file.Name.ToLowerInvariant().Contains("item") || !file.Name.EndsWith(".csv")) continue;
 
-            AddItems(file, ref outDictionary, out var needsIdAssignment);
+            AddItems(file, ref outDictionary, ref itemNameToIdDictionary, out var needsIdAssignment);
 
             if (needsIdAssignment) filesToReviewIds.Add(file);
         }
     }
 
-    private static void AddItems(FileInfo fileInfo, ref Dictionary<int, Item> moddedItems, out bool needsIdAssignment)
+    private static void AddItems(FileInfo fileInfo, ref Dictionary<int, Item> moddedItems,
+        ref Dictionary<string, int> itemNameToIdDictionary, out bool needsIdAssignment)
     {
         needsIdAssignment = false;
 
@@ -142,20 +192,26 @@ public static class CustomItemHelpers
         }
         catch (Exception _)
         {
-            Log.LogError(string.Format("item file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+            Log.LogError(string.Format("item file '{0}' couldn't be processed (exception: {1})", fileInfo.Name,
+                _.Message));
             return;
         }
-        
+
         foreach (var modLine in records)
             try
             {
                 // 0 means the mod needs to generate an id
                 if (modLine.id == 0) needsIdAssignment = true;
-                else moddedItems.Add(modLine.id, AddItem(modLine));
+                else
+                {
+                    moddedItems.Add(modLine.id, AddItem(modLine));
+                    itemNameToIdDictionary.Add(modLine.name, modLine.id);
+                }
             }
             catch (Exception _)
             {
-                Log.LogError(string.Format("item '{0}' couldn't be added (exception: {1})", modLine.name, _.Message));
+                Log.LogError(string.Format("item '{0}'{2} couldn't be added (exception: {1})", modLine.name, _.Message,
+                    modLine.id));
             }
     }
 
@@ -185,18 +241,7 @@ public static class CustomItemHelpers
         bool containsAlcohol, IngredientType ingredientType, int x, int y, Price price, string name,
         bool mustBeAged, string spriteSheetName)
     {
-        var itemDatabaseAccessor = ItemDatabaseAccessor.GetInstance();
-        var itemDatabase = ItemDatabaseAccessor.GetDatabaseSO();
-        var itemDictionaryField = Traverse.Create(itemDatabaseAccessor)
-            .Field(RandomNameHelper.GetField<ItemDatabaseAccessor, Dictionary<int, Item>>().Name);
-        var itemDictionary = itemDictionaryField
-                                 .GetValue<Dictionary<int, Item>>()
-                             // If not initialized, initialize
-                             ?? itemDictionaryField
-                                 .SetValue(new Dictionary<int, Item>())
-                                 .GetValue<Dictionary<int, Item>>();
-
-        if (itemDictionary.TryGetValue(itemId, out var result))
+        if (ItemDictionary.TryGetValue(itemId, out var result))
         {
             Log.LogError("Item " + result.nameId + " already exists in Database.");
             return result;
@@ -214,6 +259,7 @@ public static class CustomItemHelpers
         item.ingredientType = ingredientType;
         item.modifiers = Array.Empty<IngredientModifier>();
         item.appearsInOrders = true;
+        item.price = price;
         item.sellPrice = price;
         item.translationByID = false;
         item.name = name;
@@ -221,11 +267,11 @@ public static class CustomItemHelpers
         item.excludedFromTrends = false;
         item.hasToBeAgedMeal = mustBeAged;
 
-        item.canBeSold = true;
+        item.canBeSold = foodType != FoodType.None;
         item.held = false;
         item.savedAsAPlaceable = false;
 
-        // todo:
+        // todo: probably not really needed
         // item.dirtySprite =
         // item.heldSprite =
         item.ingredientIcon = Sprite.Create(tex, new Rect(x * 33, y * 33, 33, 33), new Vector2(0f, 0f));
@@ -234,8 +280,8 @@ public static class CustomItemHelpers
 
         Traverse.Create(item).Field("id").SetValue(itemId);
 
-        itemDatabase.items = itemDatabase.items.AddToArray(item);
-        itemDictionary
+        ItemDatabase.items = ItemDatabase.items.AddToArray(item);
+        ItemDictionary
             .Add(itemId, item);
 
         return item;
@@ -253,7 +299,8 @@ public static class CustomItemHelpers
         return directory.GetFiles();
     }
 
-    public static void GenerateRecipeIds(List<FileInfo> fileInfos, ref Dictionary<int, Recipe> outDictionary)
+    public static void GenerateRecipeIds(List<FileInfo> fileInfos, ref Dictionary<int, Recipe> outDictionary,
+        ref Dictionary<string, int> itemNameToIdDictionary)
     {
         if (fileInfos.Count == 0) return;
 
@@ -271,28 +318,44 @@ public static class CustomItemHelpers
             var result = new List<ModRecipeLine>();
             using var csvReader = new CsvReader(
                 new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-                CultureInfo.InvariantCulture);IEnumerable<ModRecipeLine> records;
+                CultureInfo.InvariantCulture);
+            IEnumerable<ModRecipeLine> records;
             try
             {
                 records = csvReader.GetRecords<ModRecipeLine>();
             }
             catch (Exception _)
             {
-                Log.LogError(string.Format("recipe file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+                Log.LogError(string.Format("recipe file '{0}' couldn't be processed (exception: {1})", fileInfo.Name,
+                    _.Message));
                 return;
             }
-        
+
             foreach (var modLine in records)
             {
-                if (modLine.id != 0 || modLine.itemId == 0)
+                if (modLine.id != 0)
                 {
                     result.Add(modLine);
                     continue;
                 }
 
+                var itemId = modLine.itemId;
+                if (modLine.itemId == 0)
+                {
+                    if (itemNameToIdDictionary.TryGetValue(modLine.name, out var dictionaryNameId))
+                    {
+                        itemId = dictionaryNameId;
+                    }
+                    else
+                    {
+                        Log.LogError(string.Format("Could not find item based on name: {0} for a recipe",
+                            modLine.name));
+                    }
+                }
+
                 var newLine = modLine with { id = nextRecipeId++ };
 
-                var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
+                var item = ItemDatabaseAccessor.GetItem(itemId);
 
                 if (item == null)
                 {
@@ -302,11 +365,13 @@ public static class CustomItemHelpers
 
                 try
                 {
-                    outDictionary.Add(newLine.id, AddRecipe(newLine, item));
+                    // Gets sellPrice
+                    // divides out into servings
+                    outDictionary.Add(newLine.id, AddRecipe(newLine, item, ref itemNameToIdDictionary));
                 }
                 catch (Exception _)
                 {
-                    Log.LogError(string.Format("recipe '{0}' couldn't be added (exception: {1})", modLine.name,
+                    Log.LogError(string.Format("recipeGA '{0}' couldn't be added (exception: {1})", modLine.name,
                         _.Message));
                 }
 
@@ -326,17 +391,19 @@ public static class CustomItemHelpers
     }
 
     public static void AddRecipesFromDir(string relativePath, ref Dictionary<int, Recipe> outDictionary,
+        ref Dictionary<string, int> itemNameToIdDictionary,
         ref List<FileInfo> filesToReviewIds)
     {
         foreach (var file in GetFiles(relativePath))
             if (file.Name.ToLowerInvariant().Contains("recipe") && file.Name.EndsWith(".csv"))
             {
-                AddRecipes(file, ref outDictionary, out var needsIdAssignment);
+                AddRecipes(file, ref outDictionary, ref itemNameToIdDictionary, out var needsIdAssignment);
                 if (needsIdAssignment) filesToReviewIds.Add(file);
             }
     }
 
     private static void AddRecipes(FileInfo fileInfo, ref Dictionary<int, Recipe> moddedRecipes,
+        ref Dictionary<string, int> itemNameToIdDictionary,
         out bool needsIdAssignment)
     {
         needsIdAssignment = false;
@@ -350,18 +417,33 @@ public static class CustomItemHelpers
         }
         catch (Exception _)
         {
-            Log.LogError(string.Format("recipe file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+            Log.LogError(string.Format("recipe file '{0}' couldn't be processed (exception: {1})", fileInfo.Name,
+                _.Message));
             return;
         }
-        
+
         foreach (var modLine in records)
             try
             {
-                var item = ItemDatabaseAccessor.GetItem(modLine.itemId);
+                var itemId = modLine.itemId;
+                if (modLine.itemId == 0)
+                {
+                    if (itemNameToIdDictionary.TryGetValue(modLine.name, out var dictionaryNameId))
+                    {
+                        itemId = dictionaryNameId;
+                    }
+                    else
+                    {
+                        Log.LogError(string.Format("Could not find item based on name: {0} for a recipe",
+                            modLine.name));
+                    }
+                }
+
+                var item = ItemDatabaseAccessor.GetItem(itemId);
                 if (modLine.id == 0)
                     needsIdAssignment = true;
                 else if (item != null)
-                    moddedRecipes.Add(modLine.id, AddRecipe(modLine, item));
+                    moddedRecipes.Add(modLine.id, AddRecipe(modLine, item, ref itemNameToIdDictionary));
             }
             catch (Exception _)
             {
@@ -369,16 +451,18 @@ public static class CustomItemHelpers
             }
     }
 
-    private static Recipe AddRecipe(ModRecipeLine modRecipe, Item item)
+    private static Recipe AddRecipe(ModRecipeLine modRecipe, Item item,
+        ref Dictionary<string, int> itemNameToIdDictionary)
     {
         return AddRecipe(item, modRecipe.id, modRecipe.page,
             modRecipe.recipeGroup, modRecipe.recipeIngredients(), modRecipe.workstation,
             modRecipe.fuel,
-            new GameDate.Time { mins = modRecipe.time }, modRecipe.outputAmount);
+            new GameDate.Time { mins = modRecipe.time }, modRecipe.outputAmount, ref itemNameToIdDictionary);
     }
 
     private static Recipe AddRecipe(Item item, int recipeId, Recipe.RecipePage page, Recipe.RecipeGroup recipeGroup,
-        string recipeIngredientStrings, int workstation, int fuel, GameDate.Time time, int outputAmount)
+        string recipeIngredientStrings, int workstation, int fuel, GameDate.Time time, int outputAmount,
+        ref Dictionary<string, int> itemNameToIdDictionary)
     {
         var recipeDatabaseAccessor = RecipeDatabaseAccessor.GetInstance();
         var recipeDatabase = Traverse.Create(recipeDatabaseAccessor).Field("recipeDatabaseSO")
@@ -403,17 +487,28 @@ public static class CustomItemHelpers
 
 
         // optionally there will be an "item name" in the csv just ignore it
-        var r = new Regex("""(?<itemId>[-]*\d+) - (\"\D*\" ){0,1}\((?<itemAmount>\d+)\)""", RegexOptions.Compiled,
-            TimeSpan.FromMilliseconds(150));
+        var r = new Regex("""(?<itemAmount>\d+)x [-]{0,1}\d+""").Match(recipeIngredientStrings).Success
+            ? Amount_Id_Note
+            : Id_Note_Amount;
 
         var recipeIngredientLists = new List<RecipeIngredient>();
         for (var m = r.Match(recipeIngredientStrings); m.Success; m = m.NextMatch())
+        {
+            var itemId = int.Parse(m.Groups["itemId"].Value);
+            if (itemId == 0 && m.Groups["itemName"].Success)
+            {
+                if (itemNameToIdDictionary.TryGetValue(m.Groups["itemName"].Value, out var foundId))
+                {
+                    itemId = foundId;
+                }
+            }
+
             recipeIngredientLists.Add(new RecipeIngredient
             {
                 amount = int.Parse(m.Groups["itemAmount"].Value),
-                item = ItemDatabaseAccessor.GetItem(int.Parse(m.Groups["itemId"].Value))
+                item = ItemDatabaseAccessor.GetItem(itemId),
             });
-
+        }
         var recipeIngredients = recipeIngredientLists.ToArray();
 
         recipe.id = recipeId;
@@ -435,6 +530,13 @@ public static class CustomItemHelpers
         recipeDictionary
             .Add(recipe.id, recipe);
         recipeDatabase.recipes = recipeDatabase.recipes.AddToArray(recipe);
+
+        if (ItemDictionary.Remove(RandomNameHelper.GetItemId(item), out var itemInDB))
+        {
+            // updating item in db with recipe info
+            itemInDB.recipe = recipe;
+            ItemDictionary.Add(RandomNameHelper.GetItemId(item), itemInDB);
+        }
 
         // Add to Crafters
         RecipeDatabaseAccessor

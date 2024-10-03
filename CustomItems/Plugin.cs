@@ -8,6 +8,7 @@ using BepInEx.Configuration;
 using CsvHelper;
 using HarmonyLib;
 using I2.Loc;
+using JetBrains.Annotations;
 using RestlessMods;
 using UnityEngine;
 
@@ -151,9 +152,9 @@ public class Plugin : ModBase
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 
-    private static Dictionary<int, Item> _moddedItems = new();
-    private static Dictionary<string, int> _moddedItemNameToId = new();
-    private static Dictionary<int, Recipe> _moddedRecipes = new();
+    public static Dictionary<int, Item> ModdedItems = new();
+    public static Dictionary<string, int> ModdedItemNameToId = new();
+    public static Dictionary<int, Recipe> ModdedRecipes = new();
 
 
     private void Update()
@@ -221,22 +222,17 @@ public class Plugin : ModBase
         }
     }
 
-    private static Dictionary<string, TermData> languageSourceDataTermDataDictionary { get; set; }
+    internal static Dictionary<string, TermData> LanguageSourceDataTermDataDictionary { get; set; }
 
     [HarmonyPatch(typeof(LanguageSourceData), "UpdateDictionary")]
     [HarmonyPostfix]
     private static void UpdateDictionaryOccurred(LanguageSourceData __instance,
         ref Dictionary<string, TermData> ___mDictionary)
     {
-        languageSourceDataTermDataDictionary = ___mDictionary;
-        foreach (var term in ___mDictionary.Values)
-        {
-            if (term.Term.StartsWith("Items/"))
-                Log.LogInfo("\t" + term.Term + "(" + term.Languages.Length + ") - " + term.Languages[0]);
-        }
+        LanguageSourceDataTermDataDictionary = ___mDictionary;
     }
 
-    private static Tuple<TermData, TermData> NewItemTranslations(Item item)
+    internal static Tuple<TermData, TermData> NewItemTranslations(Item item, [CanBeNull] string description = "nice description")
     {
         var itemTerm = new TermData
         {
@@ -249,7 +245,7 @@ public class Plugin : ModBase
         {
             Description = string.Format("custom item {0}", RandomNameHelper.GetItemIdAndName(item)),
             Term = string.Format("Items/item_description_{0}", RandomNameHelper.GetItemId(item)),
-            Languages = new[] { "nice description" },
+            Languages = new[] { description },
             TermType = eTermType.Text
         };
         return Tuple.Create(itemTerm, descriptionTerm);
@@ -260,22 +256,15 @@ public class Plugin : ModBase
     private static void AddNewItems()
     {
         // Only run the first time
-        if (_moddedItems.Count > 0) return;
+        if (ModdedItems.Count > 0) return;
 
-        var filesToReviewIds = new List<FileInfo>();
+        var itemFiles = new List<FileInfo>();
 
         foreach (var folder in Folders)
-            CustomItemHelpers.AddItemsFromDir(folder, ref _moddedItems, ref _moddedItemNameToId, ref filesToReviewIds);
-
-        if (AssignIds.Value)
-            CustomItemHelpers.GenerateItemIds(filesToReviewIds, ref _moddedItems);
-
-        foreach (var moddedItem in _moddedItems.Values)
-        {
-            var terms = NewItemTranslations(moddedItem);
-            languageSourceDataTermDataDictionary.Add(terms.Item1.Term, terms.Item1);
-            languageSourceDataTermDataDictionary.Add(terms.Item2.Term, terms.Item2);
-        }
+            CustomItemHelpers.DeepFileSearch(folder, ref itemFiles, "item");
+        Log.LogInfo("found this many item files: " + itemFiles.Count);
+        
+        CustomItemHelpers.AddItems(itemFiles);
     }
 
     [HarmonyPatch(typeof(RecipeDatabaseAccessor), "Awake")]
@@ -283,21 +272,16 @@ public class Plugin : ModBase
     private static void AddRecipes()
     {
         // Only run the first time
-        if (_moddedRecipes.Count > 0) return;
+        if (ModdedRecipes.Count > 0) return;
 
-        var filesToReviewIds = new List<FileInfo>();
+        var recipeFiles = new List<FileInfo>();
+        
         foreach (var folder in Folders)
-            CustomItemHelpers.AddRecipesFromDir(folder, ref _moddedRecipes, ref _moddedItemNameToId,
-                ref filesToReviewIds);
+            CustomItemHelpers.DeepFileSearch(folder, ref recipeFiles,"recipe");
+        Log.LogInfo("found this many recipe files: " + recipeFiles.Count);
+        CustomItemHelpers.AddRecipes(recipeFiles);
 
         if (CraftAllSeeds.Value)
-        {
-            CustomItemHelpers.SeedMakerRecipes(ref _moddedRecipes, SeedInput.Value, SeedOutput.Value);
-            filesToReviewIds.Add(new FileInfo(CustomItemHelpers.BepInExPluginPath + "seedMakerRecipesGenerated.csv"));
-        }
-
-        // replace 0's as needed
-        if (AssignIds.Value)
-            CustomItemHelpers.GenerateRecipeIds(filesToReviewIds, ref _moddedRecipes, ref _moddedItemNameToId);
+            CustomItemHelpers.SeedMakerRecipes(SeedInput.Value, SeedOutput.Value);
     }
 }

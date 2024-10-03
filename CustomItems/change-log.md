@@ -1,4 +1,8 @@
-
+# 0.1.0
+- Added modifier requirements to recipes
+- Added reload recipe/items functionality
+- Added tooltips
+- Progress to getting non Food items as well!!
 
 # 0.0.6.2
 - Added modifer logic, fixed tooltips, updated ingredient flow

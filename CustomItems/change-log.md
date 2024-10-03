@@ -1,3 +1,8 @@
+
+
+# 0.0.6.2
+- Added modifer logic, fixed tooltips, updated ingredient flow
+
 # 0.0.6
 - Update to support new recipe format White Vinegar = `10x 166 "white wine"` which was suggested instead of `166 - "white wine" (10)`
   - the mod "for now" will support both styles

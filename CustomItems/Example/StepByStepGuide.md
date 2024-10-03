@@ -179,8 +179,9 @@ This mod is using sprite sheet **exactly 512 pixels by 512 pixels**. Each image 
 
 ### foodType
 - Values are (Food/Drink/None) so is it food drink or something else
+  - ONLY USE "Food" if you want it to be sellable if it is an ingredient put None
 
-### canBeUsedAsModifier
+### isIngredient (previously called canBeUsedAsModifier)
 - can this item be used as an ingredient in another food? (think watermelon is a Fruity ingredient to Cocktails)
 
 ### modifiers

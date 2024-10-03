@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using BepInEx.Logging;
 using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using HarmonyLib;
 using RestlessMods;
 using UnityEngine;
@@ -19,14 +21,31 @@ public static class CustomItemHelpers
 {
     internal const string BepInExPluginPath = "BepInEx/plugins/";
     internal static ManualLogSource Log;
+    private static readonly CsvConfiguration Conf = new(CultureInfo.InvariantCulture)
+    {
+        HeaderValidated = null ,
+        MissingFieldFound = null,
+    };
+    
+    // "-5 - "Any Bread" (20)","184303 - "Corned Beef" (1)","184304 - "Thousand Island Dressing" (1)","1378 - "Pickles in Vinegar" (1)","-4 - "Any Cheese" (1)"
+    // "1x 1272 "Tomato Sauce"","1x 235 - "Garlic"","1x 220 - "Onion"","1x 3055 - "Aromatic Plants"","1x 1291 - "Oil""
 
+
+        
+    // 10 of any fruit
+    // -2 - "any fruit" (10)
+    // 20 of any bread with a rye modifier
+    // -4 - "any bread" [66 - "rye"] (20)
     private static Regex Id_Note_Amount = new Regex(
-        """(?<itemId>[-]*\d+) - (\"(?<itemName>\D*)\" ){0,1}\((?<itemAmount>\d+)\)""", RegexOptions.Compiled,
+        """(?<itemId>[-]*\d+) - (\"(?<itemName>\D*)\"){0,1}\s*(\[(?<modifierId>[-]*\d+)( - \"(?<modifierName>\D*)\"){0,1}\]){0,1}\s*\((?<itemAmount>\d+)\)""", RegexOptions.Compiled,
         TimeSpan.FromMilliseconds(150));
 
+    // 10 of any fruit
     // 10x -2 "any fruit"
+    // 20 of any bread with a rye modifier
+    // 20x -4 "any bread" [66 "rye"]
     private static Regex Amount_Id_Note = new Regex(
-        """(?<itemAmount>\d+)x (?<itemId>[-]{0,1}\d+)(\s)*(\"(?<itemName>\D*)\"){0,1}""", RegexOptions.Compiled,
+        """(?<itemAmount>\d+)x (?<itemId>[-]{0,1}\d+)\s*(\"(?<itemName>\D*)\"){0,1}\s*(\[(?<modifierId>\d+)(\s*\"(?<modifierName>\D*)\"){0,1}\]){0,1}""", RegexOptions.Compiled,
         TimeSpan.FromMilliseconds(150));
 
     private static ItemDatabase _itemDatabase;
@@ -127,7 +146,10 @@ public static class CustomItemHelpers
             var result = new List<ModItemLine>();
             using var csvReader = new CsvReader(
                 new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-                CultureInfo.InvariantCulture);
+                Conf);
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<bool>().BooleanFalseValues.Add("");
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<bool>().BooleanFalseValues.Add("NULL");
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<bool>().BooleanFalseValues.Add(null);
             foreach (var modLine in csvReader.GetRecords<ModItemLine>())
             {
                 if (modLine.id != 0)
@@ -184,7 +206,7 @@ public static class CustomItemHelpers
         needsIdAssignment = false;
 
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-            CultureInfo.InvariantCulture);
+            Conf);
         IEnumerable<ModItemLine> records;
         try
         {
@@ -219,9 +241,9 @@ public static class CustomItemHelpers
     {
         return AddItem(
             modItem.id,
-            modItem.foodType,
+            modItem.foodType ?? FoodType.None,
             modItem.canBeAged,
-            modItem.canBeUsedAsModifier,
+            modItem.isIngredient ?? modItem.canBeUsedAsModifier ?? false,
             modItem.containsAlcohol,
             modItem.ingredientType,
             modItem.spriteX,
@@ -252,7 +274,8 @@ public static class CustomItemHelpers
         // ReSharper disable once Unity.IncorrectScriptableObjectInstantiation
         var item = ScriptableObject.CreateInstance<Food>();
 
-        item.canBeAged = canBeAged;
+        // todo what are these
+        item.tags = Array.Empty<Tag>();
         item.canBeUsedAsModifier = canBeUsedAsModifer;
         item.containsAlcohol = containsAlcohol;
         item.foodType = foodType;
@@ -265,6 +288,7 @@ public static class CustomItemHelpers
         item.name = name;
         item.nameId = itemId + " - " + name;
         item.excludedFromTrends = false;
+        item.canBeAged = canBeAged;
         item.hasToBeAgedMeal = mustBeAged;
 
         item.canBeSold = foodType != FoodType.None;
@@ -316,9 +340,8 @@ public static class CustomItemHelpers
         foreach (var fileInfo in fileInfos)
         {
             var result = new List<ModRecipeLine>();
-            using var csvReader = new CsvReader(
-                new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-                CultureInfo.InvariantCulture);
+            using var csvReader = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))), Conf);
+            csvReader.Context.TypeConverterCache.AddConverter(new BoolConverter());
             IEnumerable<ModRecipeLine> records;
             try
             {
@@ -390,6 +413,19 @@ public static class CustomItemHelpers
         }
     }
 
+    private class BoolConverter : TypeConverter<bool>
+    {
+        public override bool ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+        {
+            return !string.IsNullOrWhiteSpace(text) && bool.Parse(text);
+        }
+
+        public override string ConvertToString(bool value, IWriterRow row, MemberMapData memberMapData)
+        {
+            return value.ToString();
+        }
+    }
+
     public static void AddRecipesFromDir(string relativePath, ref Dictionary<int, Recipe> outDictionary,
         ref Dictionary<string, int> itemNameToIdDictionary,
         ref List<FileInfo> filesToReviewIds)
@@ -408,7 +444,7 @@ public static class CustomItemHelpers
     {
         needsIdAssignment = false;
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-            CultureInfo.InvariantCulture);
+            Conf);
 
         IEnumerable<ModRecipeLine> records;
         try
@@ -457,11 +493,11 @@ public static class CustomItemHelpers
         return AddRecipe(item, modRecipe.id, modRecipe.page,
             modRecipe.recipeGroup, modRecipe.recipeIngredients(), modRecipe.workstation,
             modRecipe.fuel,
-            new GameDate.Time { mins = modRecipe.time }, modRecipe.outputAmount, ref itemNameToIdDictionary);
+            new GameDate.Time { mins = modRecipe.time }, modRecipe, modRecipe.outputAmount, ref itemNameToIdDictionary);
     }
 
     private static Recipe AddRecipe(Item item, int recipeId, Recipe.RecipePage page, Recipe.RecipeGroup recipeGroup,
-        string recipeIngredientStrings, int workstation, int fuel, GameDate.Time time, int outputAmount,
+        string recipeIngredientStrings, int workstation, int fuel, GameDate.Time time, ModRecipeLine modRecipeLine, int outputAmount,
         ref Dictionary<string, int> itemNameToIdDictionary)
     {
         var recipeDatabaseAccessor = RecipeDatabaseAccessor.GetInstance();
@@ -503,10 +539,14 @@ public static class CustomItemHelpers
                 }
             }
 
+            int.TryParse(m.Groups["modifierId"].Value, out int modifierId);
+            ItemDictionary.TryGetValue(modifierId, out var modifier);
+
             recipeIngredientLists.Add(new RecipeIngredient
             {
                 amount = int.Parse(m.Groups["itemAmount"].Value),
                 item = ItemDatabaseAccessor.GetItem(itemId),
+                mod = modifier
             });
         }
         var recipeIngredients = recipeIngredientLists.ToArray();
@@ -518,23 +558,31 @@ public static class CustomItemHelpers
         recipe.recipeGroup = recipeGroup;
         recipe.fuel = fuel;
         recipe.time = time;
+        recipe.modiferNeeded = Array.Empty<IngredientType>();
+        recipe.modiferTypes = Array.Empty<IngredientType>();
         recipe.output = new ItemAmount
         {
             item = item,
             amount = outputAmount
         };
+        if (modRecipeLine.dropModifiers == true)
+        {
+            Log.LogInfo("drop mod for item: " + RandomNameHelper.GetItemIdAndName(item) + " using old recipe system.");
+            recipe.usingNewRecipesSystem = false;
+        }
         recipe.ingredientsNeeded = recipeIngredients;
-
-
+        
         // Add to RecipeDatabase
         recipeDictionary
             .Add(recipe.id, recipe);
         recipeDatabase.recipes = recipeDatabase.recipes.AddToArray(recipe);
 
-        if (ItemDictionary.Remove(RandomNameHelper.GetItemId(item), out var itemInDB))
+        // only add recipe stuff for mod created items without a recipe set
+        if (itemNameToIdDictionary.ContainsKey(item.name) && ItemDictionary.Remove(RandomNameHelper.GetItemId(item), out var itemInDB))
         {
             // updating item in db with recipe info
-            itemInDB.recipe = recipe;
+            if (itemInDB.recipe == null)
+                itemInDB.recipe = recipe;
             ItemDictionary.Add(RandomNameHelper.GetItemId(item), itemInDB);
         }
 
@@ -559,11 +607,11 @@ public static class CustomItemHelpers
     internal record struct ModItemLine(
         int id,
         string name,
-        FoodType foodType,
-        bool canBeUsedAsModifier,
+        FoodType? foodType,
+        bool? isIngredient,
+        bool? canBeUsedAsModifier,
         bool containsAlcohol,
         IngredientType ingredientType, /*IngredientModifier[] modifiers,*/
-        // int sellPrice,
         int silverCoins,
         int copperCoins,
         bool canBeAged,
@@ -583,12 +631,14 @@ public static class CustomItemHelpers
         int itemId,
         Recipe.RecipePage page,
         Recipe.RecipeGroup recipeGroup,
+        // ingredient is a string with ingredient (id, amount) and optional [modifier] and optional [ingredient_name, modifier_name]
         string ingredient1,
         string ingredient2,
         string ingredient3,
         string ingredient4,
         string ingredient5,
         int workstation,
+        bool? dropModifiers,
         int fuel,
         int time,
         int outputAmount)

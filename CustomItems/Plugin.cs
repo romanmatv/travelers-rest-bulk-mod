@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,8 +7,10 @@ using BepInEx;
 using BepInEx.Configuration;
 using CsvHelper;
 using HarmonyLib;
+using I2.Loc;
 using RestlessMods;
 using UnityEngine;
+
 // ReSharper disable UseStringInterpolation
 
 namespace CustomItems;
@@ -187,11 +190,12 @@ public class Plugin : ModBase
                 }
             }
 
-            var strings = dict.Keys.Select(key => key + " - \"" + dict[key].item.name + "\" (" + dict[key].amount + ")")
+            var strings = dict.Keys
+                .Select(key => dict[key].amount + "x " + RandomNameHelper.GetItemIdAndName(dict[key].item))
                 .ToArray();
 
             foreach (var str in strings)
-                    Log.LogInfo(str);
+                Log.LogInfo(str);
 
             if (RecipeTesting.Value)
             {
@@ -217,9 +221,42 @@ public class Plugin : ModBase
         }
     }
 
+    private static Dictionary<string, TermData> languageSourceDataTermDataDictionary { get; set; }
+
+    [HarmonyPatch(typeof(LanguageSourceData), "UpdateDictionary")]
+    [HarmonyPostfix]
+    private static void UpdateDictionaryOccurred(LanguageSourceData __instance,
+        ref Dictionary<string, TermData> ___mDictionary)
+    {
+        languageSourceDataTermDataDictionary = ___mDictionary;
+        foreach (var term in ___mDictionary.Values)
+        {
+            if (term.Term.StartsWith("Items/"))
+                Log.LogInfo("\t" + term.Term + "(" + term.Languages.Length + ") - " + term.Languages[0]);
+        }
+    }
+
+    private static Tuple<TermData, TermData> NewItemTranslations(Item item)
+    {
+        var itemTerm = new TermData
+        {
+            Description = string.Format("custom item {0}", RandomNameHelper.GetItemIdAndName(item)),
+            Term = string.Format("Items/item_name_{0}", RandomNameHelper.GetItemId(item)),
+            Languages = new[] { item.name },
+            TermType = eTermType.Text
+        };
+        var descriptionTerm = new TermData
+        {
+            Description = string.Format("custom item {0}", RandomNameHelper.GetItemIdAndName(item)),
+            Term = string.Format("Items/item_description_{0}", RandomNameHelper.GetItemId(item)),
+            Languages = new[] { "nice description" },
+            TermType = eTermType.Text
+        };
+        return Tuple.Create(itemTerm, descriptionTerm);
+    }
 
     [HarmonyPatch(typeof(ItemDatabaseAccessor), "Awake")]
-    [HarmonyPrefix]
+    [HarmonyPostfix]
     private static void AddNewItems()
     {
         // Only run the first time
@@ -232,10 +269,17 @@ public class Plugin : ModBase
 
         if (AssignIds.Value)
             CustomItemHelpers.GenerateItemIds(filesToReviewIds, ref _moddedItems);
+
+        foreach (var moddedItem in _moddedItems.Values)
+        {
+            var terms = NewItemTranslations(moddedItem);
+            languageSourceDataTermDataDictionary.Add(terms.Item1.Term, terms.Item1);
+            languageSourceDataTermDataDictionary.Add(terms.Item2.Term, terms.Item2);
+        }
     }
 
     [HarmonyPatch(typeof(RecipeDatabaseAccessor), "Awake")]
-    [HarmonyPrefix]
+    [HarmonyPostfix]
     private static void AddRecipes()
     {
         // Only run the first time
@@ -243,14 +287,15 @@ public class Plugin : ModBase
 
         var filesToReviewIds = new List<FileInfo>();
         foreach (var folder in Folders)
-            CustomItemHelpers.AddRecipesFromDir(folder, ref _moddedRecipes, ref _moddedItemNameToId, ref filesToReviewIds);
+            CustomItemHelpers.AddRecipesFromDir(folder, ref _moddedRecipes, ref _moddedItemNameToId,
+                ref filesToReviewIds);
 
         if (CraftAllSeeds.Value)
         {
             CustomItemHelpers.SeedMakerRecipes(ref _moddedRecipes, SeedInput.Value, SeedOutput.Value);
             filesToReviewIds.Add(new FileInfo(CustomItemHelpers.BepInExPluginPath + "seedMakerRecipesGenerated.csv"));
         }
-        
+
         // replace 0's as needed
         if (AssignIds.Value)
             CustomItemHelpers.GenerateRecipeIds(filesToReviewIds, ref _moddedRecipes, ref _moddedItemNameToId);

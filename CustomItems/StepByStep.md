@@ -24,10 +24,10 @@ thai tea (milk + black tea) [3,0]
 #### Put in easy fields into a recipe.csv file
 ![easy fields](Example/PartialRecipeFile.png)
 
-![img_16.png](img_16.png)
+![img_16.png](readmePictures/img_16.png)
 
 ### more complex:
-![img_2.png](img_2.png)
+![img_2.png](readmePictures/img_2.png)
 
 #### Can be used as modifier (true or false)
 > So can this item be used to modify another item (barely vs wheat modify the bread being made)
@@ -55,11 +55,11 @@ thai tea (milk + black tea) [3,0]
 
 after filling those in it should look like so in the Items.csv
 
-![Items](img_3.png)
+![Items](readmePictures/img_3.png)
 
 now to fill in more of the recipes.csv
 
-![img_4.png](img_4.png)
+![img_4.png](readmePictures/img_4.png)
 
 #### workstation
 > Look through the list of workstations in the [readme](readme.md) to assign desired crafters/workstations for the new recipes. Above I used Oven and the Barrel Tank.
@@ -73,12 +73,12 @@ now to fill in more of the recipes.csv
 
 ## Assign item Ids to the new items
 > Note currently (Sept 2024) the game is using ids up to 99,999 so try to not use ids lower than that here I picked 182 because (RestlessBarkeep => RB => Alphabet Character 18 + Alphabet Character 2 + a bunch of 0s to make distinct)
-![img_5.png](img_5.png)
+![img_5.png](readmePictures/img_5.png)
 
 ## Assign item Ids to the Recipes
 > Note the recipe id does not need to and might not equal the itemId just happens to here
 
-![img_6.png](img_6.png)
+![img_6.png](readmePictures/img_6.png)
 
 ## harder steps
 
@@ -91,27 +91,27 @@ now to fill in more of the recipes.csv
 
 
 So I put a milk and egg into my toolbar and hit mod key
-![img_7.png](img_7.png)
+![img_7.png](readmePictures/img_7.png)
 
 testRecipe.csv:
 1 cow milk and 1 egg
-![img_8.png](img_8.png)
+![img_8.png](readmePictures/img_8.png)
 
 
 #### (cheese) pizza:
 
-![img_9.png](img_9.png)
+![img_9.png](readmePictures/img_9.png)
 
 > have to add in the cheese requirement
 
-![img_10.png](img_10.png)
+![img_10.png](readmePictures/img_10.png)
 
 > lookup the cheese group 
 
-![img_11.png](img_11.png)
+![img_11.png](readmePictures/img_11.png)
 
-![img_12.png](img_12.png)
+![img_12.png](readmePictures/img_12.png)
 
 #### Done!!
 
-![img_13.png](img_13.png)
+![img_13.png](readmePictures/img_13.png)

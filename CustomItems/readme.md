@@ -15,7 +15,7 @@ The mod will look into all folders provided in the config for any .csv file cont
 ###### Note mod assumes the SpriteSheet has 33x33 sprites but even the game does not do exactly that to save some space
 
 
-![Folder Structure](img.png)
+![Folder Structure](readmePictures/img.png)
 
 
 
@@ -214,8 +214,8 @@ The mod will look into all folders provided in the config for any .csv file cont
 
 
 ##### Using Yeast and Malts to make more Yeast
-![img_14.png](img_14.png)
+![img_14.png](readmePictures/img_14.png)
 
 ##### Using White Wine to make Vinegar
-![img_15.png](img_15.png)
+![img_15.png](readmePictures/img_15.png)
 

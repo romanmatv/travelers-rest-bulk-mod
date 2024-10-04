@@ -49,7 +49,7 @@ public partial class Plugin : BaseUnityPlugin
         // BetterScythe.Awake(_harmony, _configFile, Logger);
         BetterWateringCan.Awake(_harmony, _configFile, Logger);
 
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 
     public enum Tier

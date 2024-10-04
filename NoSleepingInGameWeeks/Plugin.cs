@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using HarmonyLib;
 
 namespace NoSleepingInGameWeeks;
@@ -11,7 +12,7 @@ public class Plugin : BaseUnityPlugin
         
     [HarmonyPatch(typeof(SaveUI), nameof(SaveUI.TitleFadeInFinished))]
     [HarmonyPostfix]
-    static void AfterGameLoad(SaveUI __instance, SaveSlotUI ___lastSlotSelected)
+    private static void AfterGameLoad(SaveUI __instance, SaveSlotUI ___lastSlotSelected)
     {
         var instance = WorldTime.GetInstance();
         var currentGameDate = Traverse.Create(instance).Field("currentGameDate").GetValue<GameDate>();
@@ -26,6 +27,6 @@ public class Plugin : BaseUnityPlugin
         Harmony.CreateAndPatchAll(typeof(Plugin));
 
         // Plugin startup logic
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 }

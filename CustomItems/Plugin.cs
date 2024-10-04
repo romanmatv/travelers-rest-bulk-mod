@@ -149,7 +149,7 @@ public class Plugin : ModBase
         Logger.LogInfo("\thave " + (Folders?.Length ?? 0) + " folder(s) to review");
 
         // Plugin startup logic
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 
     public static Dictionary<int, Item> ModdedItems = new();

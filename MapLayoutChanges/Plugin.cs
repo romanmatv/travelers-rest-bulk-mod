@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
@@ -21,7 +22,7 @@ namespace MapLayoutChanges
             _quarryRocksInfinite = Config.Bind("MapChanges", "quarryRocksInfinite", false, "To offset missing rocks around Tavern this option will allow endless mining of rocks in the 'Quarry' (north with the miners).");
 
             // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
 

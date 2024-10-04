@@ -71,7 +71,7 @@ namespace CustomerChatLines
             }
 
             // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
         // On game finishing Load

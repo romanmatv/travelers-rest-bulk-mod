@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -34,6 +35,6 @@ public class Plugin : RestlessMods.ModBase
         TapRefiller.Awake();
             
         // Plugin startup logic
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 }

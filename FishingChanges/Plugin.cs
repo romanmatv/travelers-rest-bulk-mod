@@ -67,9 +67,8 @@ public class Plugin : RestlessMods.ModBase
         var method = getDynamicFinishFishingMethod();
         _changedFishingWaitTimesMod = method == null ? null : new ILHook(method, ChangeAnimationTime);
             
-            
 
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 
     private static MethodBase getDynamicFinishFishingMethod()

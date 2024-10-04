@@ -67,7 +67,7 @@ namespace LargeBatchCooking
             _modGamepadHotKey = Config.Bind("LargeBatch", "keycode for button trigger", 11,
                 "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
             // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
 

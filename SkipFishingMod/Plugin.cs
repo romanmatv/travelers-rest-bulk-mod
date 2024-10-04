@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using HarmonyLib;
 using UnityEngine.UI;
 
@@ -17,9 +18,7 @@ namespace SkipFishingMod
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             references = CommonReferences.FindObjectOfType<CommonReferences>();
             
-            Logger.LogInfo($"Mod: {PluginInfo.PLUGIN_NAME} {PluginInfo.PLUGIN_GUID} is loaded!");
-            
-            
+            Console.Out.WriteLine($"Mod: {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
 

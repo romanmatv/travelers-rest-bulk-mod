@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 
@@ -34,7 +35,7 @@ namespace EndlessLateNights
                 "Hours to go backwards (WARNING: going back to the previous day can mess with things)");
             
             // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
         [HarmonyPatch(typeof(TimeUI), "Update")]

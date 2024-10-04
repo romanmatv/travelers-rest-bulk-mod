@@ -42,7 +42,7 @@ public abstract class OtherSortingOptions : SubModBase
             }).Select(slot => new ItemInstanceAmount(slot.itemInstance, slot.Stack))
             .OrderBy(instanceAmount =>
             {
-                var price = Traverse.Create(instanceAmount.itemInstance).Field("item").GetValue<Item>()?.sellPrice ?? new Price();
+                var price = Money.CalculateSellPrice(instanceAmount.itemInstance, false, true);
                 return price.copper + price.silver * 100 + price.gold * 10000;
             })
             .ThenBy(x => x.amount)

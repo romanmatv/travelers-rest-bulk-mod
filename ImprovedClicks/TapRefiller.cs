@@ -15,7 +15,7 @@ class TapRefiller : RestlessMods.SubModBase
 
     [HarmonyPatch(typeof(DrinkDispenserUI), nameof(DrinkDispenserUI.CloseUI))]
     [HarmonyPrefix]
-    private static bool Foo(DrinkDispenserUI __instance)
+    private static bool DrinkDispenser(DrinkDispenserUI __instance)
     {
         if (__instance == null || !Plugin.ModTrigger(1)) return true;
 

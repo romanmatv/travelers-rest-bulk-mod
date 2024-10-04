@@ -1,5 +1,3 @@
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using RestlessMods;
 using UnityEngine;
@@ -19,9 +17,9 @@ public class BetterHoe : SubModBase
                && Plugin.GetWorldTileMethod != null;
     }
 
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(BetterHoe));
+        BaseSetup(nameof(BetterHoe));
 
         var maxLevel = Config.Bind("maxLevelOverride", 0, "Change the max level for this tool only.");
         var maxRows = Config.Bind("maxRowsOverride", 0, "Change the max rows target for this tool only.");
@@ -92,7 +90,7 @@ public class BetterHoe : SubModBase
     [HarmonyPostfix]
     public static void ToolAction(Hoe __instance, int __0, Vector2 ___tilePosition, bool __result)
     {
-        if (!__result || !ModTrigger.ModTriggered(ModName, __0)) return;
+        if (!__result || !ModTrigger(ModName, __0)) return;
         var directionVector = Plugin.GetDirectionVector(PlayerController.GetPlayerDirection(__0));
         if (directionVector == Vector2.zero) return;
 

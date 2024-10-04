@@ -1,5 +1,3 @@
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 
 
@@ -10,9 +8,9 @@ public class BetterPick : RestlessMods.SubModBase
     
     internal static Plugin.Tier CurrentTier => Plugin.GetTier(Plugin.MaxLevel.Value, TavernReputation.GetMilestone());
 
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(BetterPick));
+        BaseSetup(nameof(BetterPick));
 
         BaseFinish(typeof(BetterPick));
     }

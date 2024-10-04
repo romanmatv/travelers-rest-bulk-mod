@@ -1,6 +1,3 @@
-using System;
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 
@@ -11,9 +8,9 @@ public class BetterWateringCan : RestlessMods.SubModBase
 {
     private static int _maxLevel;
     private static int _maxRows;
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(BetterWateringCan));
+        BaseSetup(nameof(BetterWateringCan));
         
         var maxLevel = Config.Bind("maxLevelOverride", 0, "Change the max level for this tool only.");
         var maxRows = Config.Bind("maxRowsOverride", 0, "Change the max rows target for this tool only.");
@@ -30,7 +27,7 @@ public class BetterWateringCan : RestlessMods.SubModBase
     [HarmonyPostfix]
     private static void BetterWatering(WateringCan __instance, int __0, bool __result)
     {
-        if (!__result || !RestlessMods.ModTrigger.ModTriggered(ModName, __0)) return;
+        if (!__result || !ModTrigger(ModName, __0)) return;
         var repLevel = TavernReputation.GetMilestone();
         var facing = PlayerController.GetPlayerDirection(__0);
         var tileMod = facing is Direction.Left or Direction.Down ? -.5 : .5;

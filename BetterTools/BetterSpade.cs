@@ -1,5 +1,3 @@
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 
@@ -18,9 +16,9 @@ public class BetterSpade : RestlessMods.SubModBase
             ;
     }
 
-    public new static void Awake(Harmony _harmony, ConfigFile configFile, ManualLogSource logger)
+    public new static void Awake()
     {
-        BaseSetup(_harmony, configFile, logger, nameof(BetterSpade));
+        BaseSetup(nameof(BetterSpade));
 
         var maxLevel = Config.Bind("maxLevelOverride", 0, "Change the max level for this tool only.");
         var maxRows = Config.Bind("maxRowsOverride", 0, "Change the max rows target for this tool only.");
@@ -73,7 +71,7 @@ public class BetterSpade : RestlessMods.SubModBase
     [HarmonyPostfix]
     public static void ToolAction(Spade __instance, int __0, Vector2 ___tilePosition, bool __result)
     {
-        if (!__result || !RestlessMods.ModTrigger.ModTriggered(ModName, __0)) return;
+        if (!__result || !ModTrigger(ModName, __0)) return;
         var directionVector = Plugin.GetDirectionVector(PlayerController.GetPlayerDirection(__0));
         if (directionVector == Vector2.zero) return;
 

@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
-using HarmonyLib;
 using UnityEngine;
 
 namespace BetterTools;
 
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public partial class Plugin : BaseUnityPlugin
+public partial class Plugin : RestlessMods.ModBase
 {
-    private static Harmony _harmony;
     internal static ConfigEntry<bool> LessenWorkByLevel;
     internal static ConfigEntry<int> MaxLevel;
     internal static ConfigEntry<int> MaxRows;
@@ -21,16 +20,16 @@ public partial class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+        Setup(typeof(Plugin), PluginInfo.PLUGIN_NAME);
         _configFile = Config;
-        RestlessMods.ModTrigger.Config = Config;
 
-        RestlessMods.ModTrigger.GetModKeyEntry(ModName);
         LessenWorkByLevel = Config.Bind(ModName, "isActive", true,
             "Flag enabling/disabling tool improvement");
         MaxLevel = Config.Bind(ModName, "maxLevel", 40, "Level to 1 hit everything.");
         MaxRows = Config.Bind(ModName, "maxRows", 6, "Max rows target for BetterTools.maxLevel.");
         
+        
+        RestlessMods.SubModBase.NewModTrigger(ModName, _configFile, Log);
 
         _toolIdList = new[]
         {
@@ -42,12 +41,12 @@ public partial class Plugin : BaseUnityPlugin
             1435, // wateringCan
         };
 
-        BetterAx.Awake(_harmony, _configFile, Logger);
-        BetterHoe.Awake(_harmony, _configFile, Logger);
-        BetterSpade.Awake(_harmony, _configFile, Logger);
-        BetterPick.Awake(_harmony, _configFile, Logger);
-        // BetterScythe.Awake(_harmony, _configFile, Logger);
-        BetterWateringCan.Awake(_harmony, _configFile, Logger);
+        BetterAx.Awake();
+        BetterHoe.Awake();
+        BetterSpade.Awake();
+        BetterPick.Awake();
+        // BetterScythe.Awake();
+        BetterWateringCan.Awake();
 
         Console.Out.WriteLine($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }

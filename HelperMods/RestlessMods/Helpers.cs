@@ -28,21 +28,58 @@ public abstract class ModBase : BaseUnityPlugin
     }
 }
 
-public abstract class ModTrigger
+public class ModTrigger
 {
     // test
-    public static ConfigFile Config { get; set; }
+    public ConfigFile Config { get; set; }
+    public String ModName { get; set; }
+    public ManualLogSource Log { get; set; }
 
-    public static ConfigEntry<int> GetModKeyEntry(string section) =>
-        Config.Bind(section, "ModKey for Controller", 11, "L3 is KeyCode 11");
+    public ConfigEntry<int> GetModKeyEntry() =>
+        Config.Bind(ModName, "ModKey by Controller", -1, "L3 is KeyCode 11, -1 is turn off");
+    
+    public ConfigEntry<KeyCode> GetKeyboardKeyEntry() =>
+        Config.Bind(ModName, "ModKey by Keyboard", KeyCode.None, "Keyboard KeyCode to trigger the mod, None is turn off");
 
-    public static bool ModTriggered(string section, int PlayerId)
+    public ConfigEntry<bool> IsActionKeyEntryEnabled() =>
+        Config.Bind(ModName, "ModKey by Action (enable disable)", false, "whether or not you want the ModKey to work off an in game Action");
+    public ConfigEntry<ActionType> GetActionKeyEntry() =>
+        Config.Bind(ModName, "ModKey by Action", ActionType.SprintHoldAction, "ActionType to trigger the mod, SprintHoldAction is a good one");
+
+    public ConfigEntry<bool> IsDescriptiveKeyEntryEnabled() =>
+        Config.Bind(ModName, "ModKey by Description (enable disable)", false, "whether or not you want the ModKey to work off a description string (EXPERT)");
+    public ConfigEntry<string> GetDescriptiveKeyEntry() =>
+        Config.Bind(ModName, "ModKey by Description", "RightMouseDetect", "Descriptive string for user input to trigger the mode, RightMouseDetect is on holding right click");
+
+
+    // ReSharper disable once UnusedMember.Global
+    internal void FillInConfigFile()
     {
-        var modKey = GetModKeyEntry(section).Value;
-        return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
-               || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
-               || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
-                   .Any(joystick => joystick.GetButton(modKey));
+        _ = IsDescriptiveKeyEntryEnabled();
+        _ = GetDescriptiveKeyEntry();
+        _ = GetKeyboardKeyEntry();
+        _ = GetModKeyEntry();
+        _ = IsActionKeyEntryEnabled();
+        _ = GetActionKeyEntry();
+    }
+
+    public bool ModTriggered(int PlayerId)
+    {
+        return (IsDescriptiveKeyEntryEnabled().Value && PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect"))
+               || (GetKeyboardKeyEntry().Value != KeyCode.None && Input.GetKeyDown(GetKeyboardKeyEntry().Value))
+               || (GetModKeyEntry().Value > -1 && JoyStickGetButton(PlayerId, GetModKeyEntry().Value))
+               || (IsActionKeyEntryEnabled().Value && PlayerInputs.GetPlayer(PlayerId).GetButton(GetActionKeyEntry().Value));
+        // var modKey = GetModKeyEntry(section).Value;
+        // return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
+        //        || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
+        //        || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
+        //            .Any(joystick => joystick.GetButton(modKey));
+    }
+
+    private bool JoyStickGetButton(int PlayerId, int controllerKey)
+    {
+        return ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
+            .Any(joystick => joystick.GetButton(controllerKey));
     }
 }
 
@@ -163,9 +200,29 @@ public abstract class RandomNameHelper
         }
     }
 
+
+    public static string GetItemIdAndName(Item item)
+    {
+        var itemName = GetItemName(item);
+        return item == null
+            ? ""
+            : string.Format("{0}{1}", GetItemId(item), string.IsNullOrWhiteSpace(itemName) ? "" : string.Format(" \"{0}\"", itemName));
+    }
     public static int GetItemId(Item item)
     {
         return HarmonyLib.Traverse.Create(item).Field("id").GetValue<int>();
+    }
+
+    public static string GetItemName(Item item)
+    {
+        return (item is null
+                ? ""
+                : item.translationByID
+                    ? LocalisationSystem.Get("Items/item_name_" + GetItemId(item))
+                    : string.IsNullOrEmpty(item.nameId)
+                        ? item.name
+                        : item.nameId
+            )?.Replace(",", "");
     }
 }
 
@@ -187,16 +244,71 @@ public class SubModBase
         public string SectionName { get; } = SectionName;
     }
 
+    protected static Dictionary<string, ManualLogSource> logSources = new();
+    protected static Dictionary<string, ModTrigger> _modTriggers = new();
     protected static Configuration Config;
     protected static ConfigEntry<bool> IsEnabled;
     protected static string ModName;
     protected static ManualLogSource Log;
     protected static Harmony Harmony;
 
+    public static ModTrigger NewModTrigger(string modName, ConfigFile configFile, ManualLogSource Log)
+    {
+        var result = new ModTrigger
+        {
+            ModName = modName,
+            Config = configFile,
+            Log = Log,
+        };
+        _modTriggers[modName] = result;
+        return result;
+    }
+
+    public static bool ModTrigger(string modName, int PlayerId)
+    {
+        if (!_modTriggers.TryGetValue(modName, out var trigger)) return false;
+        
+        var section = modName;
+        var IsDescriptiveKeyEntry = trigger.IsDescriptiveKeyEntryEnabled();
+        var GetDescriptiveKeyEntry = trigger.GetDescriptiveKeyEntry();
+        var GetKeyboardKeyEntry = trigger.GetKeyboardKeyEntry();
+        var GetModKeyEntry = trigger.GetModKeyEntry();
+        var IsActionKeyEntryEnabled = trigger.IsActionKeyEntryEnabled();
+        var GetActionKeyEntry = trigger.GetActionKeyEntry();
+
+        trigger.Log.LogInfo(string.Format("{0}). {1},{2},{3},{4},{5},{6},",
+            section,
+            IsDescriptiveKeyEntry.Value,
+            GetDescriptiveKeyEntry.Value,
+            GetKeyboardKeyEntry.Value,
+            GetModKeyEntry.Value,
+            IsActionKeyEntryEnabled.Value,
+            GetActionKeyEntry.Value
+        ));
+        return trigger.ModTriggered(PlayerId);
+
+    }
+
+    protected static void BaseSetup(string modName, bool modTriggers)
+    {
+        BaseSetup(modName);
+
+        if (modTriggers)
+        {
+            _modTriggers.Add(modName, new ModTrigger
+            {
+                ModName = modName,
+                Config = Config.ConfigFile,
+                Log = Log,
+            });
+            _modTriggers[modName].FillInConfigFile();
+        }
+    }
     protected static void BaseSetup(string modName)
     {
         BaseSetup(ModBase._harmony, ModBase._config, ModBase.Log, modName);
     }
+
     protected static void BaseSetup(Harmony harmony, ConfigFile config, ManualLogSource logger, string modName)
     {
         Config = new Configuration(config, modName);

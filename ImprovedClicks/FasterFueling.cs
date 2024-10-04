@@ -8,10 +8,11 @@ namespace ImprovedClicks;
 public class FasterFueling : SubModBase
 {
     private static ConfigEntry<int> _fuelInputWithRightClick;
+    private static string ModName = nameof(FasterFueling);
     
     public new static void Awake()
     {
-        BaseSetup(nameof(FasterFueling));
+        BaseSetup(ModName, true);
         
         _fuelInputWithRightClick = Config.Bind("input size", 5,
         "Change the amount of fuel to move on one click, while holding ModTrigger");
@@ -23,7 +24,7 @@ public class FasterFueling : SubModBase
     [HarmonyPrefix]
     static void FuelElementUIClick(FuelElementUI __instance)
     {
-        if (__instance == null || !Plugin.ModTrigger(1)) return;
+        if (__instance == null || !ModTrigger(ModName, 1)) return;
 
         var slot = Traverse.Create(__instance)
             .Field("slot")

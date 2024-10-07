@@ -1,3 +1,7 @@
+# 0.1.1
+- Fixed warning issue on custom item
+- Added bait recipes
+
 # 0.1.0
 - Added modifier requirements to recipes
 - Added reload recipe/items functionality

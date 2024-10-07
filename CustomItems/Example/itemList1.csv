@@ -2,6 +2,4 @@ id,name,foodType,canBeUsedAsModifier,containsAlcohol,ingredientType,silverCoins,
 0,fried egg,Food,False,False,None,1,2,False,False,False,False,rbk-tr-CustomItems\stardewValleySprites.png,0,3
 0,scrambled egg,Food,False,False,None,1,12,False,False,False,False,rbk-tr-CustomItems\stardewValleySprites.png,1,3
 0,thai tea,Drink,False,False,None,2,55,False,False,False,False,rbk-tr-CustomItems\stardewValleySprites.png,3,0
-0,Cheese sticks,Food,FALSE,FALSE,None,2,4,FALSE,FALSE,FALSE,FALSE,rbk-tr-CustomItems\Tamagotchi Smart - Base.png,0,0
-0,Milk and cookies,Food,FALSE,FALSE,None,2,5,FALSE,FALSE,FALSE,FALSE,rbk-tr-CustomItems\Milk_and_Cookies.png,0,0
 0,Fruit tea,Drink,FALSE,FALSE,None,2,6,FALSE,FALSE,FALSE,FALSE,rbk-tr-CustomItems\Custom2.png,5,2

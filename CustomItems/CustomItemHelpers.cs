@@ -312,6 +312,12 @@ public static class CustomItemHelpers
             food.canBeAged = modItem.canBeAged;
             food.canBeSold = foodType != FoodType.None;
             food.held = false;
+            // TODO: help sprite so lessen log complains
+            // food.heldSprite = ScriptableObject.CreateInstance<CharacterSprite>()
+            // {
+                
+            // }
+            
             item = food;
         }
         else

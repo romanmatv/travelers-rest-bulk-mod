@@ -1,0 +1,3 @@
+id,name,itemId,page,recipeGroup,ingredient1,ingredient2,ingredient3,ingredient4,ingredient5,workstation,dropModifiers,fuel,time,outputAmount
+0,Meat Bait,1446,All,None,"1x 1276 ""Minced Meat""",,,,,1451,,0,10,10
+0,Seafood Bait,1447,All,None,"1x 1453 ""Minced Fish""",,,,,1451,,0,10,10

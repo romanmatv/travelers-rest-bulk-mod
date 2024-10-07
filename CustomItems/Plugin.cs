@@ -284,4 +284,20 @@ public class Plugin : ModBase
         if (CraftAllSeeds.Value)
             CustomItemHelpers.SeedMakerRecipes(SeedInput.Value, SeedOutput.Value);
     }
+
+
+    [HarmonyPatch(typeof(CharacterAnimation), "Eat")]
+    [HarmonyPrefix]
+    private static bool EatItem(CharacterAnimation __instance, ItemInstance __0)
+    {
+        var item = Traverse.Create(__0)
+            .Field("item")
+            .GetValue<Item>();
+        var itemId = RandomNameHelper.GetItemId(item);
+
+        if (!ModdedItems.ContainsKey(itemId) || item is not Food { foodType: FoodType.Food }) return true;
+        
+        __instance.SetTrigger("Eat");
+        return false;
+    }
 }

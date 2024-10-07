@@ -27,7 +27,8 @@ public class BetterWateringCan : RestlessMods.SubModBase
     [HarmonyPostfix]
     private static void BetterWatering(WateringCan __instance, int __0, bool __result)
     {
-        if (!__result || !ModTrigger(ModName, __0)) return;
+        if (!__result || !ModTrigger(Plugin.ModName, __0)) return;
+        
         var repLevel = TavernReputation.GetMilestone();
         var facing = PlayerController.GetPlayerDirection(__0);
         var tileMod = facing is Direction.Left or Direction.Down ? -.5 : .5;

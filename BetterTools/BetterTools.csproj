@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>rbk-tr-BetterTools</AssemblyName>
         <Description>Mod to have base tools scale with Rep now with Textures</Description>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <BaseOutputPath>..\output</BaseOutputPath>

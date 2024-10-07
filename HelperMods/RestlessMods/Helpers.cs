@@ -36,18 +36,18 @@ public class ModTrigger
     public ManualLogSource Log { get; set; }
 
     public ConfigEntry<int> GetModKeyEntry() =>
-        Config.Bind(ModName, "ModKey by Controller", -1, "L3 is KeyCode 11, -1 is turn off");
+        Config.Bind(ModName, "ModKey by Controller", 11, "L3 is KeyCode 11, -1 is turn off");
     
     public ConfigEntry<KeyCode> GetKeyboardKeyEntry() =>
-        Config.Bind(ModName, "ModKey by Keyboard", KeyCode.None, "Keyboard KeyCode to trigger the mod, None is turn off");
+        Config.Bind(ModName, "ModKey by Keyboard", KeyCode.LeftShift, "Keyboard KeyCode to trigger the mod, None is turn off");
 
     public ConfigEntry<bool> IsActionKeyEntryEnabled() =>
-        Config.Bind(ModName, "ModKey by Action (enable disable)", false, "whether or not you want the ModKey to work off an in game Action");
+        Config.Bind(ModName, "ModKey by Action (enable disable)", true, "whether or not you want the ModKey to work off an in game Action");
     public ConfigEntry<ActionType> GetActionKeyEntry() =>
         Config.Bind(ModName, "ModKey by Action", ActionType.SprintHoldAction, "ActionType to trigger the mod, SprintHoldAction is a good one");
 
     public ConfigEntry<bool> IsDescriptiveKeyEntryEnabled() =>
-        Config.Bind(ModName, "ModKey by Description (enable disable)", false, "whether or not you want the ModKey to work off a description string (EXPERT)");
+        Config.Bind(ModName, "ModKey by Description (enable disable)", true, "whether or not you want the ModKey to work off a description string (EXPERT)");
     public ConfigEntry<string> GetDescriptiveKeyEntry() =>
         Config.Bind(ModName, "ModKey by Description", "RightMouseDetect", "Descriptive string for user input to trigger the mode, RightMouseDetect is on holding right click");
 
@@ -69,11 +69,6 @@ public class ModTrigger
                || (GetKeyboardKeyEntry().Value != KeyCode.None && Input.GetKeyDown(GetKeyboardKeyEntry().Value))
                || (GetModKeyEntry().Value > -1 && JoyStickGetButton(PlayerId, GetModKeyEntry().Value))
                || (IsActionKeyEntryEnabled().Value && PlayerInputs.GetPlayer(PlayerId).GetButton(GetActionKeyEntry().Value));
-        // var modKey = GetModKeyEntry(section).Value;
-        // return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
-        //        || PlayerInputs.GetPlayer(PlayerId).GetButton(ActionType.SprintHoldAction)
-        //        || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks
-        //            .Any(joystick => joystick.GetButton(modKey));
     }
 
     private bool JoyStickGetButton(int PlayerId, int controllerKey)
@@ -266,27 +261,7 @@ public class SubModBase
 
     public static bool ModTrigger(string modName, int PlayerId)
     {
-        if (!_modTriggers.TryGetValue(modName, out var trigger)) return false;
-        
-        var section = modName;
-        var IsDescriptiveKeyEntry = trigger.IsDescriptiveKeyEntryEnabled();
-        var GetDescriptiveKeyEntry = trigger.GetDescriptiveKeyEntry();
-        var GetKeyboardKeyEntry = trigger.GetKeyboardKeyEntry();
-        var GetModKeyEntry = trigger.GetModKeyEntry();
-        var IsActionKeyEntryEnabled = trigger.IsActionKeyEntryEnabled();
-        var GetActionKeyEntry = trigger.GetActionKeyEntry();
-
-        trigger.Log.LogInfo(string.Format("{0}). {1},{2},{3},{4},{5},{6},",
-            section,
-            IsDescriptiveKeyEntry.Value,
-            GetDescriptiveKeyEntry.Value,
-            GetKeyboardKeyEntry.Value,
-            GetModKeyEntry.Value,
-            IsActionKeyEntryEnabled.Value,
-            GetActionKeyEntry.Value
-        ));
-        return trigger.ModTriggered(PlayerId);
-
+        return _modTriggers.TryGetValue(modName, out var trigger) && trigger.ModTriggered(PlayerId);
     }
 
     protected static void BaseSetup(string modName, bool modTriggers)

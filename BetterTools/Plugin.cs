@@ -16,7 +16,7 @@ public partial class Plugin : RestlessMods.ModBase
     internal static ConfigEntry<int> MaxRows;
     static ConfigFile _configFile;
 
-    private const string ModName = "BetterTools";
+    internal const string ModName = "BetterTools";
 
     private void Awake()
     {

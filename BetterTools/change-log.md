@@ -1,3 +1,6 @@
+# 1.1.1
+- cleanup on ModKey info
+
 # 1.1.0
 - Refactor/cleanup
 

@@ -71,7 +71,7 @@ public class BetterSpade : RestlessMods.SubModBase
     [HarmonyPostfix]
     public static void ToolAction(Spade __instance, int __0, Vector2 ___tilePosition, bool __result)
     {
-        if (!__result || !ModTrigger(ModName, __0)) return;
+        if (!__result || !ModTrigger(Plugin.ModName, __0)) return;
         var directionVector = Plugin.GetDirectionVector(PlayerController.GetPlayerDirection(__0));
         if (directionVector == Vector2.zero) return;
 

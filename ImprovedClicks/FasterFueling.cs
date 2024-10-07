@@ -8,8 +8,8 @@ namespace ImprovedClicks;
 public class FasterFueling : SubModBase
 {
     private static ConfigEntry<int> _fuelInputWithRightClick;
-    private static string ModName = nameof(FasterFueling);
-    
+    private new const string ModName = nameof(FasterFueling);
+
     public new static void Awake()
     {
         BaseSetup(ModName, true);

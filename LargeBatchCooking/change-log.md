@@ -1,3 +1,6 @@
+# 0.1.1
+- use shared ModKey logic
+
 # 0.1.0
 - Fixed: discounts ("Bonifications") are no longer ignored on large batches
 - Fixed: Recipes **are always reset on Exiting the crafter** (Exit with Mod Key to keep modifier)

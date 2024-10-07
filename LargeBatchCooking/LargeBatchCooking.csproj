@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>rbk-tr-LargeBatchCooking</AssemblyName>
     <Description>Mod to have "LargeBatchCooking" recipes, multiples the ingredient/time/output.</Description>
-    <Version>0.0.6</Version>
+    <Version>0.1.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <BaseOutputPath>..\output</BaseOutputPath>
@@ -38,5 +38,12 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Rewired_Core">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Rewired_Core.dll</HintPath>
+    </Reference>
+    <Compile Include="..\HelperMods\RestlessMods\*.cs" LinkBase="RestlessMods" />
   </ItemGroup>
 </Project>

@@ -10,7 +10,7 @@ public class FasterWaterWell : SubModBase
 
     public new static void Awake()
     {
-        BaseSetup(nameof(FasterWaterWell));
+        BaseSetup(nameof(FasterWaterWell), true);
 
         BaseFinish(typeof(FasterWaterWell));
 

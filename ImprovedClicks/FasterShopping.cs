@@ -11,7 +11,7 @@ public class FasterShopping : SubModBase
     
     public new static void Awake()
     {
-        BaseSetup(nameof(FasterShopping));
+        BaseSetup(nameof(FasterShopping), true);
 
         _shopInputWithRightClick = Config.Bind("input size", 50,
             "Change the amount of items to grab on one click, while holding ModTrigger");

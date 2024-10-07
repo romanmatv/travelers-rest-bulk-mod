@@ -10,7 +10,6 @@ namespace ImprovedClicks;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : RestlessMods.ModBase
 {
-    private static Harmony _harmony;
     private static ConfigEntry<int> _modGamepadHotKey;
 
     public static bool ModTrigger(int PlayerId)

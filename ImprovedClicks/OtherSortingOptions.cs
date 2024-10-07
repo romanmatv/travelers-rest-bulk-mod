@@ -10,7 +10,7 @@ public abstract class OtherSortingOptions : SubModBase
 {
     public new static void Awake()
     {
-        BaseSetup(nameof(OtherSortingOptions));
+        BaseSetup(nameof(OtherSortingOptions), true);
         
         BaseFinish(typeof(OtherSortingOptions));
     }

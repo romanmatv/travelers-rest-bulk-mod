@@ -6,7 +6,7 @@ class TapRefiller : RestlessMods.SubModBase
 {
     public new static void Awake()
     {
-        BaseSetup(nameof(TapRefiller));
+        BaseSetup(nameof(TapRefiller), true);
 
         // Add more here
 

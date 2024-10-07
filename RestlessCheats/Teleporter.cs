@@ -9,7 +9,7 @@ namespace RestlessCheats;
 
 public class Teleporter : SampleSubModBase
 {
-    enum TeleportationTargets
+    private enum TeleportationTargets
     {
         Bed,
         Bar,
@@ -24,6 +24,7 @@ public class Teleporter : SampleSubModBase
         {
             TeleportationTargets.Bed => Object.FindObjectOfType<Bed>().transform.position,
             TeleportationTargets.Bar => Object.FindObjectOfType<Bar>().transform.position,
+            _ => throw new ArgumentOutOfRangeException()
         };
     
     public new static void Awake(Harmony harmony, ConfigFile configFile, ManualLogSource logger)
@@ -44,5 +45,4 @@ public class Teleporter : SampleSubModBase
 
         PlayerController.TeleportPlayer(__0, TargetPosition, Location.Tavern);
     }
-    
 }

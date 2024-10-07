@@ -29,12 +29,10 @@ class TapRefiller : RestlessMods.SubModBase
         {
             if (inventorySlotUI == null) continue;
             var inventorySlot = Traverse.Create(inventorySlotUI).Field("slot").GetValue<Slot>();
-            if (inventorySlot?.itemInstance == null) continue;
+            if (inventorySlot?.itemInstance == null || Traverse.Create(inventorySlot.itemInstance).Field("item").GetValue<Item>() == null) continue;
             
-            if (!inventorySlot.DMOFMNBHMEO() && targetSlot.itemInstance.Equals(inventorySlot.itemInstance))
-            {
+            if (targetSlot.itemInstance.Equals(inventorySlot.itemInstance))
                 inventorySlotUI.OnSlotRightClick(1, inventorySlot);
-            }
         }
 
         return true;

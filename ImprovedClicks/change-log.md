@@ -1,5 +1,6 @@
 # 1.0.3
 - switch to shared ModKey logic
+- fixed issue around fast tap refill
 
 # 1.0.2
 - can sort bar items by increasing price now with ModKey + Sort

@@ -82,9 +82,9 @@ public abstract class CustomSpriteSheets
 {
     private static readonly Dictionary<string, byte[]> SpriteSheets = new();
 
-    public static Texture2D GetTextureBySpriteSheetName(string name)
+    public static Texture2D GetTextureBySpriteSheetName(string name, int width = 512, int height = 512)
     {
-        var tex = new Texture2D(512, 512, TextureFormat.ARGB32, false)
+        var tex = new Texture2D(width, height, TextureFormat.ARGB32, false)
         {
             filterMode = FilterMode.Point,
             wrapMode = TextureWrapMode.Clamp,

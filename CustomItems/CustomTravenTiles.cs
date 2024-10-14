@@ -2,14 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using CsvHelper;
 using HarmonyLib;
-using I2.Loc;
-using JetBrains.Annotations;
 using RestlessMods;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -197,30 +192,205 @@ public static class CustomTavernTiles
         // tool.icon = Sprite.Create(tex, new Rect(x * 32, ((int)tier * 32), 32, 32), new Vector2(0f, 0f)).;
     }
 
-    private static TileBase[] TileBasesFromTileTexture(string name, int col = 4, int rows = 4)
+    enum DecorType
+    {
+        Wall,
+        Floor
+    }
+
+    record struct CustomTileBase(
+        int? id,
+        string name,
+        int startX,
+        int startY,
+        int cols,
+        int rows,
+        DecorType DecorType,
+        string spriteSheetName,
+        int? goldCost = 0,
+        int? silverCost = 0,
+        int? mortarCost = 0,
+        int? plankCost = 0,
+        int? nailCost = 0,
+        int? stoneCost = 0,
+        int? customTileSize = 52,
+        MaterialType? materialType = MaterialType.None
+    );
+
+    private static TileBase[] TileBasesFromTileTexture(CustomTileBase customTile)
     {
         var result = new List<TileBase>();
-        var tex = CustomSpriteSheets.GetTextureBySpriteSheetName("rbk-tr-custom-walls/TR_Wallpapers.png", width: 2048,
-            height: 2048);
+        var tex = CustomSpriteSheets.GetTextureBySpriteSheetName(customTile.spriteSheetName, width: 2048, height: 2048);
 
-        for (var r = 0; r < rows; r++)
+
+        switch (customTile.DecorType)
         {
-            for (var c = 0; c < col; c++)
-            {
-                var rect = new Rect(r * 24, c * 24, 24, 24);
-                var tile = ScriptableObject.CreateInstance<Tile>();
-                tile.name = name;
-                tile.sprite = Sprite.Create(tex, rect, Vector2.zero);
-                tile.transform = new Matrix4x4();
-                // tile.color = Color.clear;
-                tile.colliderType = Tile.ColliderType.Grid;
-                tile.flags = TileFlags.LockAll;
-                tile.gameObject = new GameObject();
-                result.Add(tile);
-            }
+            case DecorType.Wall: return WallTexture(customTile, result, tex).ToArray();
+            case DecorType.Floor: return FloorTexture(customTile, result, tex).ToArray();
         }
 
         return result.ToArray();
+    }
+
+    private static List<TileBase> FloorTexture(CustomTileBase customTile, List<TileBase> result, Texture2D tex)
+    {
+        int cnt = 0;
+        int tileSize = customTile.customTileSize ?? 52;
+
+        for (int r = customTile.rows - 1; r >= 0; r--)
+        {
+            for (int c = 1; c < customTile.cols; c++)
+            {
+                var num = cnt++;
+                var rect = new Rect(customTile.startX + c * tileSize, customTile.startY + r * tileSize, tileSize,
+                    tileSize);
+                WallTile(ref result, customTile.name + "_" + num, tex, rect);
+            }
+
+            var n = cnt++;
+            var rect2 = new Rect(customTile.startX + 0 * tileSize, customTile.startY + r * tileSize, tileSize,
+                tileSize);
+            WallTile(ref result, customTile.name + "_" + n, tex, rect2);
+        }
+
+        return result;
+    }
+
+    private static List<TileBase> WallTexture(CustomTileBase customTile, List<TileBase> result, Texture2D tex)
+    {
+        /*
+         * [ 0,3  1,3 ]
+         * [ 0,2  1,2 ]
+         * [ 0,1  1,1 ]
+         * [ 0,0  1,0 ]
+         *
+         * start with 1,0 -> 0,0 -> 1,1
+         */
+        int cnt = 0;
+        int tileSize = customTile.customTileSize ?? 52;
+
+        for (int r = 0; r < customTile.rows; r++)
+        {
+            for (int c = 1; c < customTile.cols; c++)
+            {
+                var num = cnt++;
+                var rect = new Rect(customTile.startX + c * tileSize, customTile.startY + r * tileSize, tileSize,
+                    tileSize);
+                WallTile(ref result, customTile.name + "_" + num, tex, rect);
+            }
+
+            var n = cnt++;
+            var rect2 = new Rect(customTile.startX + 0 * tileSize, customTile.startY + r * tileSize, tileSize,
+                tileSize);
+            WallTile(ref result, customTile.name + "_" + n, tex, rect2);
+        }
+
+        return result;
+    }
+
+    private static readonly Vector2 MagicNumber = new(0.461538f, 0.461538f);
+
+    private static readonly Matrix4x4 SingleMatrix = new(
+        new Vector4(1, 0, 0, 0),
+        new Vector4(0, 1, 0, 0),
+        new Vector4(0, 0, 1, 0),
+        new Vector4(0, 0, 0, 1)
+    );
+
+    private static readonly Matrix4x4 DoubleItMatrix = new(
+        new Vector4(2, 0, 0, 0),
+        new Vector4(0, 2, 0, 0),
+        new Vector4(0, 0, 2, 0),
+        new Vector4(0, 0, 0, 2)
+    );
+
+    private static TileBase WallTile(ref List<TileBase> result, string tileName, Texture2D tex, Rect rect)
+    {
+        var tile = ScriptableObject.CreateInstance<Tile>();
+        tile.name = tileName;
+        tile.sprite = Sprite.Create(tex, rect, MagicNumber);
+        tile.sprite.name = tile.name;
+        // tile.color = new Color(1, 1, 1, 1);
+        // only wall uses this :/
+        tile.transform = rect.width < 50 ? DoubleItMatrix : SingleMatrix;
+
+        tile.colliderType = Tile.ColliderType.Sprite;
+        tile.flags = TileFlags.LockColor;
+        // todo: maybe update?
+        tile.gameObject = new GameObject();
+        result.Add(tile);
+        // TODO: remove
+        //SaveSprite(tile.sprite, "custom/" + tile.sprite.name);
+        return tile;
+    }
+
+    // private static TileBase[] TileBasesFromTileTextureOld(string filename, int col = 4, int rows = 4, int x = 0,
+    //     int y = 0)
+    // {
+    //     var result = new List<TileBase>();
+    //     var tex = CustomSpriteSheets.GetTextureBySpriteSheetName(filename, width: 2048,
+    //         height: 2048);
+    //
+    //     for (var r = 0; r < rows; r++)
+    //     {
+    //         for (var c = 0; c < col; c++)
+    //         {
+    //             var rect = new Rect((c + 4 * x) * 25, (r + y) * 25, 25, 25);
+    //             var tile = ScriptableObject.CreateInstance<Tile>();
+    //             tile.name = "TR_Wallpapers" + ("_" + x + "_" + y) + "_" + (r * 4 + c);
+    //             tile.sprite = Sprite.Create(tex, rect, new Vector2(0.461538f, 0.461538f));
+    //             tile.sprite.name = tile.name;
+    //             //tile.transform = new Matrix4x4();
+    //             // tile.color = Color.clear;
+    //             // tile.color = new Color(1, 1, 1, 1);
+    //             tile.transform = new Matrix4x4(
+    //                 new Vector4(2, 0, 0, 0),
+    //                 new Vector4(0, 2, 0, 0),
+    //                 new Vector4(0, 0, 2, 0),
+    //                 new Vector4(0, 0, 0, 2)
+    //             );
+    //             /*
+    //             UnityExplorer.InspectorManager.Inspect(customTile);
+    //             UnityExplorer.InspectorManager.Inspect(baseTile);
+    //             */
+    //
+    //             tile.colliderType = Tile.ColliderType.Sprite;
+    //             tile.flags = TileFlags.LockColor;
+    //             tile.gameObject = new GameObject();
+    //             result.Add(tile);
+    //             SaveSprite(tile.sprite, "custom/" + tile.sprite.name);
+    //         }
+    //     }
+    //
+    //     return result.ToArray();
+    // }
+
+    private static void ReadFile(ref int id, FileInfo fileInfo)
+    {
+        using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
+            Plugin.Conf);
+        IEnumerable<CustomTileBase> records;
+        try
+        {
+            records = csv.GetRecords<CustomTileBase>();
+        }
+        catch (Exception _)
+        {
+            Log.LogError(string.Format("tile file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
+            return;
+        }
+
+        foreach (var t in records)
+        {
+            if (t.id is null or 0)
+            {
+                CreateDecorationTile(id++, t);
+            }
+            else
+            {
+                CreateDecorationTile((int)t.id, t);
+            }
+        }
     }
 
     [HarmonyPatch(typeof(EditorActionsDBAccessor), "SetUpDatabase")]
@@ -229,108 +399,120 @@ public static class CustomTavernTiles
     {
         _editorActionsDBAccessor = __instance;
 
+        var id = 182000;
+
+        var customTileFiles = new List<FileInfo>();
+        
+        foreach (var folder in Plugin.DecorTilesFolders)
+            CustomItemHelpers.DeepFileSearch(folder, ref customTileFiles,"tile");
+
+        foreach (var file in customTileFiles)
+        {
+            ReadFile(ref id, file);
+        }
+
+        // var ts = new[]
+        // {
+        //     new CustomTileBase(0, "Sakura 4x4 (small)", 0, 0, 4, 4, DecorType.Wall,
+        //         "rbk-tr-custom-walls/TR_Wallpapers.png", customTileSize: 26),
+        //     new CustomTileBase(0, "Sakura 2x4 (small)", 0, 0, 2, 4, DecorType.Wall,
+        //         "rbk-tr-custom-walls/TR_Wallpapers.png", customTileSize: 26),
+        //
+        //     new CustomTileBase(0, "Test checker 4x4", 208, 0, 4, 4, DecorType.Floor,
+        //         "rbk-tr-custom-walls/TR_Wallpapers.png"),
+        //     new CustomTileBase(0, "Test checker 2x2", 208, 0, 2, 2, DecorType.Floor,
+        //         "rbk-tr-custom-walls/TR_Wallpapers.png"),
+        //
+        //     new CustomTileBase(0, "Seashell 2x4 (small)", 0, 104, 2, 4, DecorType.Wall,
+        //         "rbk-tr-custom-walls/TR_Wallpapers.png", customTileSize: 26),
+        //     new CustomTileBase(0, "Seashell 2x4", 0, 104, 2, 4, DecorType.Wall,
+        //         "rbk-tr-custom-walls/TR_Wallpapers.png"),
+        // };
+        //
+        // foreach (var t in ts)
+        // {
+        //     if (t.id is null or 0)
+        //     {
+        //         CreateDecorationTile(id++, t);
+        //     }
+        //     else
+        //     {
+        //         CreateDecorationTile((int)t.id, t);
+        //     }
+        // }
+
+        // Foo(ts);
+    }
+
+    private static void Foo(CustomTileBase[] result)
+    {
+        using var csvWriter = new CsvWriter(new StreamWriter(CustomItemHelpers.BepInExPluginPath + "wallpapers.csv"),
+            CultureInfo.InvariantCulture);
+        csvWriter.WriteHeader<CustomTileBase>();
+        csvWriter.NextRecord();
+
+        foreach (var modLine in result)
+        {
+            csvWriter.WriteRecord(modLine);
+            csvWriter.NextRecord();
+        }
+    }
+
+    private static DecorationTile CreateDecorationTile(int id, CustomTileBase __customTileBase)
+    {
         var decorTile = ScriptableObject.CreateInstance<DecorationTile>();
-        decorTile.id = 182000;
+        decorTile.id = id;
+        decorTile.name = __customTileBase.name;
         decorTile.tileInfo = new TilesInfoBase
         {
-            numTilesX = 4,
-            numTilesY = 4,
+            numTilesX = __customTileBase.cols,
+            numTilesY = __customTileBase.rows,
         };
         // TODO: the sprites are loaded by do not work on the map (wall/floors)
         decorTile.tiles = TileBasesFromTileTexture(
-            "rbk-tr-custom-walls/TR_Wallpapers.png",
-            col: decorTile.tileInfo.numTilesX,
-            rows: decorTile.tileInfo.numTilesY
-            );
+            __customTileBase
+        );
+        // todo:
         // decorTile.roofTiles = null;
+        // todo:
         // decorTile.floorLimit = new FloorLimit
-        decorTile.materialType = MaterialType.Wood;
-        decorTile.canAddTrim = true;
+        decorTile.materialType = __customTileBase.materialType ?? MaterialType.None;
+        decorTile.canAddTrim = __customTileBase.DecorType == DecorType.Wall;
 
-        decorTile.editorAction = EditorAction.ChangeDecoWall;
+
+        decorTile.editorAction = __customTileBase.DecorType == DecorType.Wall
+            ? EditorAction.ChangeDecoWall
+            : EditorAction.ChangeDecoFloor;
         decorTile.cost = new MoneyMaterials
         {
-            mortar = 0,
-            nails = 10,
-            planks = 0,
-            stones = 0,
+            mortar = __customTileBase.mortarCost ?? 0,
+            nails = __customTileBase.nailCost ?? 0,
+            planks = __customTileBase.plankCost ?? 0,
+            stones = __customTileBase.stoneCost ?? 0,
         };
-        
-        HarmonyLib.Traverse.Create(decorTile.cost).Field("gold").SetValue(0);
-        HarmonyLib.Traverse.Create(decorTile.cost).Field("silver").SetValue(1);
-        var moneyCalc = new MoneyCalc(new Price(0, HarmonyLib.Traverse.Create(decorTile.cost).Field("silver").GetValue<int>(), HarmonyLib.Traverse.Create(decorTile.cost).Field("gold").GetValue<int>()))
-            {
-                Gold = 0,
-                Silver = 0
-            };
+
+        HarmonyLib.Traverse.Create(decorTile.cost).Field("gold").SetValue(__customTileBase.goldCost);
+        HarmonyLib.Traverse.Create(decorTile.cost).Field("silver").SetValue(__customTileBase.silverCost);
+        var moneyCalc = new MoneyCalc(new Price(0,
+            HarmonyLib.Traverse.Create(decorTile.cost).Field("silver").GetValue<int>(),
+            HarmonyLib.Traverse.Create(decorTile.cost).Field("gold").GetValue<int>()))
+        {
+            Gold = __customTileBase.goldCost ?? 0,
+            Silver = __customTileBase.silverCost ?? 0
+        };
 
         HarmonyLib.Traverse.Create(decorTile.cost).Field("moneyCalc").SetValue(moneyCalc);
-        
-        
-        
+
+
         if (decorTile.tiles is { Length: > 0 } && decorTile.tiles[0] is Tile tDecorTile)
         {
             decorTile.icon = tDecorTile.sprite;
         }
 
         HarmonyLib.Traverse.Create(decorTile).Field("offset").SetValue(Vector2.zero);
-        // var baseTile = ScriptableObject.CreateInstance<ZoneTile>();
-        // baseTile.id = -182000;
-        var baseTile = decorTile.tiles[0];
-
-        HarmonyLib.Traverse.Create(decorTile).Field("tileBase").SetValue(baseTile);
-
-        
-        // var rect = new Rect(0, 0, 24, 24);
-        // var tex = CustomSpriteSheets.GetTextureBySpriteSheetName("rbk-tr-custom-walls/TR_Wallpapers.png", width: 2048,
-            // height: 2048);
-
-        // LocationTile tileBase = ScriptableObject.CreateInstance<LocationTile>();
-        // tileBase.tileSprite = Sprite.Create(tex, rect, Vector2.zero);
-        // tileBase.location = Location.Tavern;
-        // tileBase.zoneType = ZoneType.Anywhere;
-        // tileBase.zoneIndex = ;
-        // tileBase.activationIndex = ;
-
-        // var tile = ScriptableObject.CreateInstance<DecorationTile>();
-        // var tileTraversal = HarmonyLib.Traverse.Create(tile);
-        // tile.materialType = MaterialType.Wood;
-        // tile.tileInfo = new TilesInfoBase
-        // {
-            // numTilesX = 1,
-            // numTilesY = 2
-        // };
-        // tile.floorLimit = new FloorLimit
-        // {
-            // materialType = MaterialType.Wood,
-            // All = tileBase,
-        // };
-        // tile.canAddTrim = true;
-        // tile.tiles = new TileBase[] { tileBase };
-        // tile.roofTiles = new RoofTiles
-        // {
-
-        // }
-        // tileTraversal.Field("offset").SetValue(Vector2.zero);
-        // tileTraversal.Field("tileBase").SetValue(tileBase);
-
-
+        HarmonyLib.Traverse.Create(decorTile).Field("tileBase").SetValue(decorTile.tiles[0]);
         GameDecorationTiles.Add(decorTile.id, decorTile);
-    }
 
-    private static Tilemap ModdedTileMap = new Tilemap();
-
-    // [HarmonyPatch(typeof(GameTileMaps), "SetTileAtPosition")]
-    // [HarmonyPrefix]
-    private static void XX(
-        Vector3 __0,
-        TileBase __1,
-        ref Tilemap __2)
-    {
-        if (__1  is ZoneTile { id: -182000 })
-        {
-            __2 = ModdedTileMap;
-        }
-        
+        return decorTile;
     }
 }

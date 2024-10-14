@@ -1,3 +1,6 @@
+# 0.2.0
+- Added option for Custom DecorativeTiles (Tavern Walls/Flooring)
+
 # 0.1.1
 - Fixed warning issue on custom item
 - Added bait recipes

@@ -72,6 +72,13 @@ public class Plugin : ModBase
         "rbk-tr-CustomItems",
         "| separated list of folders that store Items/Recipes/Sprites, this is relative path inside the BepInEx/plugins folder"
     ).Value.Split('|');
+    
+    public static string[] DecorTilesFolders => _config.Bind(
+        "DecorativeTiles",
+        "folders",
+        "rbk-tr-custom-walls",
+        "| separated list of folders that store Decorative Tiles, this is relative path inside the BepInEx/plugins folder"
+    ).Value.Split('|');
 
     internal static int StartingItemId => _config.Bind("CustomItems", "FirstItemId", 182_000,
         "Id to start for custom items (game is using -60 to 99,999 so aim outside of that").Value;
@@ -145,9 +152,14 @@ public class Plugin : ModBase
     private void Awake()
     {
         Setup(typeof(Plugin), PluginInfo.PLUGIN_GUID);
-        Harmony.CreateAndPatchAll(typeof(Plugin));
         CustomItemHelpers.Log = Log;
+        CustomTavernTiles.Log = Log;
 
+        
+        Harmony.CreateAndPatchAll(typeof(CustomTavernTiles));
+        // Harmony.CreateAndPatchAll(typeof(CustomItemHelpers));
+        // Harmony.CreateAndPatchAll(typeof(Plugin));
+        
         Log.LogDebug(string.Format("custom items start at {0}, custom recipes start at {1}", StartingItemId,
             StartingRecipeId));
         Log.LogDebug(string.Format("seed-maker {0} ({1} => {2})", CraftAllSeeds.Value, SeedInput.Value,

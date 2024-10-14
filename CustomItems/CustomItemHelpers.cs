@@ -23,12 +23,6 @@ public static class CustomItemHelpers
     internal const string BepInExPluginPath = "BepInEx/plugins/";
     internal static ManualLogSource Log;
 
-    private static readonly CsvConfiguration Conf = new(CultureInfo.InvariantCulture)
-    {
-        HeaderValidated = null,
-        MissingFieldFound = null,
-    };
-
     // "-5 - "Any Bread" (20)","184303 - "Corned Beef" (1)","184304 - "Thousand Island Dressing" (1)","1378 - "Pickles in Vinegar" (1)","-4 - "Any Cheese" (1)"
     // "1x 1272 "Tomato Sauce"","1x 235 - "Garlic"","1x 220 - "Onion"","1x 3055 - "Aromatic Plants"","1x 1291 - "Oil""
 
@@ -154,7 +148,7 @@ public static class CustomItemHelpers
             var result = new List<ModItemLine>();
             using var csvReader = new CsvReader(
                 new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-                Conf);
+                Plugin.Conf);
             csvReader.Context.TypeConverterOptionsCache.GetOptions<bool>().BooleanFalseValues.Add("");
             csvReader.Context.TypeConverterOptionsCache.GetOptions<bool>().BooleanFalseValues.Add("NULL");
             csvReader.Context.TypeConverterOptionsCache.GetOptions<bool>().BooleanFalseValues.Add(null);
@@ -224,7 +218,7 @@ public static class CustomItemHelpers
         var needsIdAssignment = false;
 
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-            Conf);
+            Plugin.Conf);
         IEnumerable<ModItemLine> records;
         try
         {
@@ -312,7 +306,7 @@ public static class CustomItemHelpers
             food.canBeAged = modItem.canBeAged;
             food.canBeSold = foodType != FoodType.None;
             food.held = false;
-            // TODO: help sprite so lessen log complains
+            // TODO: held sprite so lessen log complains
             // food.heldSprite = ScriptableObject.CreateInstance<CharacterSprite>()
             // {
                 
@@ -323,6 +317,9 @@ public static class CustomItemHelpers
         else
         {
             Log.LogInfo(string.Format("item {0} is not food still WIP", item.name));
+            item.savedAsAPlaceable = true;
+            // 380	Candelabra
+            // UnityExplorer.InspectorManager.Inspect(typeof())
         }
 
         if (replace)
@@ -374,7 +371,7 @@ public static class CustomItemHelpers
         {
             var result = new List<ModRecipeLine>();
             using var csvReader =
-                new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))), Conf);
+                new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))), Plugin.Conf);
             csvReader.Context.TypeConverterCache.AddConverter(new BoolConverter());
             IEnumerable<ModRecipeLine> records;
             try
@@ -566,7 +563,7 @@ public static class CustomItemHelpers
     {
         var needsIdAssignment = false;
         using var csv = new CsvReader(new StreamReader(new MemoryStream(File.ReadAllBytes(fileInfo.FullName))),
-            Conf);
+            Plugin.Conf);
 
         IEnumerable<ModRecipeLine> records;
         try

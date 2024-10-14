@@ -6,6 +6,7 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using CsvHelper;
+using CsvHelper.Configuration;
 using HarmonyLib;
 using I2.Loc;
 using JetBrains.Annotations;
@@ -41,6 +42,12 @@ namespace CustomItems;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : ModBase
 {
+    public static readonly CsvConfiguration Conf = new(CultureInfo.InvariantCulture)
+    {
+        HeaderValidated = null,
+        MissingFieldFound = null,
+    };
+    
     private static ConfigEntry<bool> Debugging => _config.Bind("DebuggingTools", "isEnabled", true,
         "whether or not you want to debug item ids");
 

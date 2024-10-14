@@ -161,6 +161,11 @@ public abstract class RandomNameHelper
         return GetPropertyValue<T, T>(default, filter);
     }
 
+    internal static TR GetFieldValue<T, TR>(T obj, [CanBeNull] Func<FieldInfo, bool> filter = null)
+    {
+        return (TR)GetField<T, TR>(filter).GetValue(obj);
+    }
+    
     /**
      * class T { static TR AAAAAAAAAA; } // pull value for T.AAAAAAAAAA
      */

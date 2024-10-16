@@ -79,6 +79,18 @@ public class Plugin : ModBase
         "rbk-tr-custom-walls",
         "| separated list of folders that store Decorative Tiles, this is relative path inside the BepInEx/plugins folder"
     ).Value.Split('|');
+    public static bool DebugIds => _config.Bind(
+        "DecorativeTiles",
+        "debug tile ids",
+        true,
+        "true will add tile ID to name of tiles in construction UI"
+    ).Value;
+    public static int fallbackTileId => _config.Bind(
+        "DecorativeTiles",
+        "fallbackTileId",
+        24,
+        "tile id to fallback to if GetDecoTile fails"
+    ).Value;
 
     internal static int StartingItemId => _config.Bind("CustomItems", "FirstItemId", 182_000,
         "Id to start for custom items (game is using -60 to 99,999 so aim outside of that").Value;

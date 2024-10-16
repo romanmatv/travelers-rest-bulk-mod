@@ -470,7 +470,14 @@ public static class CustomItemHelpers
 
     public static void DeepFileSearch(string folderPath, ref List<FileInfo> result, string fileGroup)
     {
-        DeepFileSearch(new DirectoryInfo(BepInExPluginPath + folderPath), ref result, fileGroup);
+        try
+        {
+            DeepFileSearch(new DirectoryInfo(BepInExPluginPath + folderPath), ref result, fileGroup);
+        }
+        catch (Exception e)
+        {
+            Log.LogError("Unable to read folder " + folderPath + " due to: " + e.Message);
+        }
     }
     
     // ReSharper disable once MemberCanBePrivate.Global

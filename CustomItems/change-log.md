@@ -1,3 +1,6 @@
+# 0.2.1
+- Adding fallback wall textures if things end up breaking
+
 # 0.2.0
 - Added option for Custom DecorativeTiles (Tavern Walls/Flooring)
 

@@ -15,10 +15,6 @@ namespace CustomItems;
 
 public static class CustomTavernTiles
 {
-    public static Dictionary<int, DecorationTile> ModdedWalls = new();
-    public static Dictionary<string, int> ModdedItemNameToId = new();
-    public static Dictionary<int, Recipe> ModdedRecipes = new();
-
     public static ManualLogSource Log;
 
 
@@ -462,7 +458,7 @@ public static class CustomTavernTiles
     {
         var decorTile = ScriptableObject.CreateInstance<DecorationTile>();
         decorTile.id = id;
-        decorTile.name = __customTileBase.name;
+        decorTile.name = Plugin.DebugIds ? ("[" + id + "] " + __customTileBase.name) : __customTileBase.name;
         decorTile.tileInfo = new TilesInfoBase
         {
             numTilesX = __customTileBase.cols,
@@ -515,4 +511,24 @@ public static class CustomTavernTiles
 
         return decorTile;
     }
+
+    private static Dictionary<int, bool> barkedGetDecoFails = new();
+
+    [HarmonyPatch(typeof(EditorActionsDBAccessor), "GetDecoTile")]
+    [HarmonyPostfix]
+    private static void GetDecoTile(ref DecorationTile __result, int __0)
+    {
+        if (__result != null) return;
+        
+        if (!barkedGetDecoFails.ContainsKey(__0))
+        {
+            Log.LogError("Unable to find a tile with id=" + __0 + ", replacing it with fallback of tile id=" +
+                         Plugin.fallbackTileId);
+            barkedGetDecoFails[__0] = true;
+        }
+
+        __result = EditorActionsDBAccessor.GetDecoTile(Plugin.fallbackTileId);
+    }
+    
+    
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using BepInEx.Logging;
 using CsvHelper;
 using HarmonyLib;
@@ -375,6 +376,8 @@ public static class CustomTavernTiles
             Log.LogError(string.Format("tile file '{0}' couldn't be processed (exception: {1})", fileInfo.Name, _.Message));
             return;
         }
+        
+        LogDebug(string.Format("found file: {0} with {1} customTiles", fileInfo.FullName, records.Count()));
 
         foreach (var t in records)
         {
@@ -440,6 +443,14 @@ public static class CustomTavernTiles
         // Foo(ts);
     }
 
+    private static void LogDebug(string format, params object?[] args)
+    {
+        if (Plugin.DebugIds)
+        {
+            Log.LogDebug(string.Format(format, args));
+        }
+    }
+
     private static void Foo(CustomTileBase[] result)
     {
         using var csvWriter = new CsvWriter(new StreamWriter(CustomItemHelpers.BepInExPluginPath + "wallpapers.csv"),
@@ -456,6 +467,8 @@ public static class CustomTavernTiles
 
     private static DecorationTile CreateDecorationTile(int id, CustomTileBase __customTileBase)
     {
+        LogDebug(string.Format("{1} - {0} [{2}]", __customTileBase.name, __customTileBase.id, id));
+        
         var decorTile = ScriptableObject.CreateInstance<DecorationTile>();
         decorTile.id = id;
         decorTile.name = Plugin.DebugIds ? ("[" + id + "] " + __customTileBase.name) : __customTileBase.name;
@@ -529,6 +542,4 @@ public static class CustomTavernTiles
 
         __result = EditorActionsDBAccessor.GetDecoTile(Plugin.fallbackTileId);
     }
-    
-    
 }

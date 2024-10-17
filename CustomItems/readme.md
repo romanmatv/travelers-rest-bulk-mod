@@ -1,5 +1,8 @@
 # CustomItems
 
+> this mod is a big one and Nexus formatting is a bit bad see the [Step By Step Guide with pictures](https://github.com/restless-barkeep/travelers-rest-bulk-mod/blob/main/CustomItems/StepByStep.md) on GitHub along with [more Documentation and Code](https://github.com/restless-barkeep/travelers-rest-bulk-mod/tree/main/CustomItems)
+
+
 Mod to allow adding more Items into the game
 
 Only tested Food/Drink and Recipes atm

@@ -1,6 +1,11 @@
 # EndlessLateNights
 
+Never pass out again!
+
 This mod will move the Clock backwards a customizable amount of time when the clock reaches a customizable time.
+
+### Balancing notes
+I chose 0:30-2:30 so that you still get the Tired alert, and it still hits the normal hour markers for paying employees and everything else should work ok, also picked nighttime to offset NPC time still being limited but the values are configurable and up to you.
 
 #### config showing going from 2:30 am to 0:30 am causing EndlessLateNights!
 

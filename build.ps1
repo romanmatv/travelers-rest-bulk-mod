@@ -27,9 +27,9 @@ $mods | ForEach-Object {
 
 Set-Variable -Name run -Value $args[0];
 
-cp -force .\**\rbk-tr-*.dll "C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\BepInEx\plugins\.";
+cp -force .\**\rbk-tr-*.dll "D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\BepInEx\plugins\.";
 
 
 if ($run) {
-    ."C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest.exe";
+    ."D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest.exe";
 }

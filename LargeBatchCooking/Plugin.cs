@@ -128,9 +128,9 @@ public class Plugin : ModBase
         __instance.multipleCrafting = true;
     }
 
-    [HarmonyPatch(typeof(RandomOrderQuest), nameof(RandomOrderQuest.CreateQuest))]
+    [HarmonyPatch(typeof(RandomOrderQuestsManager), nameof(RandomOrderQuestsManager.CreateQuest))]
     [HarmonyPrefix]
-    static void CheckQuestsNotBroken(RandomOrderQuest __instance, ref RandomOrderQuestInfo __0)
+    static void CheckQuestsNotBroken(RandomOrderQuestsManager __instance, ref RandomOrderQuestInfo __0)
     {
         ResetRecipe(__0.item.recipe);
         __0.requiredAmount = __0.item.recipe.output.amount;

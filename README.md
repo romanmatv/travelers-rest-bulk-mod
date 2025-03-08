@@ -1,3 +1,5 @@
+## Updated to support latest version
+
 # TravellersRestMods [https://github.com/restless-barkeep/travelers-rest-bulk-mod]
 
 [EndlessLateNights](EndlessLateNights/readme.md)

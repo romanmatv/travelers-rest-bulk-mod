@@ -5,7 +5,6 @@
         <Description>Adds more chat lines for customers</Description>
         <Version>0.0.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <BaseOutputPath>..\output</BaseOutputPath>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
@@ -21,10 +20,10 @@
     </ItemGroup>
     <ItemGroup>
         <Reference Include="Assembly-CSharp">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp-firstpass">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>

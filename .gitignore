@@ -3,3 +3,6 @@
 /output/
 /.git/
 .gitignore
+.vs
+.vscode
+**/bin

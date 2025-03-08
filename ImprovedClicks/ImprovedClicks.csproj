@@ -7,9 +7,6 @@
         <Version>1.0.3</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
-        <BaseOutputPath>..\output</BaseOutputPath>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,24 +23,24 @@
 
     <ItemGroup>
         <Reference Include="Assembly-CSharp">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="PhotonUnityNetworking">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\PhotonUnityNetworking.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\PhotonUnityNetworking.dll</HintPath>
         </Reference>
         <Reference Include="Rewired_Core">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Rewired_Core.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Rewired_Core.dll</HintPath>
         </Reference>
         <Reference Include="Sirenix.Serialization">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Sirenix.Serialization.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Sirenix.Serialization.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.UI">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\UnityEngine.UI.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\UnityEngine.UI.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>
         <Reference Include="Rewired_Core">
-            <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Rewired_Core.dll</HintPath>
+            <HintPath>D:\SteamLibrary\steamapps\common\Travellers Rest\Windows\TravellersRest_Data\Managed\Rewired_Core.dll</HintPath>
         </Reference>
         <Compile Include="..\HelperMods\RestlessMods\*.cs" LinkBase="RestlessMods" />
     </ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using Rewired;
 
@@ -12,11 +13,14 @@ namespace QuickWaterWell
         public static Harmony _harmony;
         private static CommonReferences _commonReferences;
         private static ConfigEntry<int> _modGamepadHotKey;
+        private static ConfigEntry<bool> _modRequiredHotKey;
+
+        //private static ManualLogSource _logger = null;
 
 
         private static bool ModTrigger(int PlayerId)
         {
-            return PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
+            return !_modRequiredHotKey.Value || PlayerInputs.GetPlayer(PlayerId).GetButton("RightMouseDetect")
                    || ReInput.players.GetPlayer(PlayerId - 1).controllers.Joysticks.Any(Joystick => Joystick.GetButton(_modGamepadHotKey.Value))
                 ;
             
@@ -55,7 +59,12 @@ namespace QuickWaterWell
             _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             _modGamepadHotKey = Config.Bind("QuickWaterWell", "keycode for button trigger", 11,
                 "Haven't mapped all buttons but L3 on Stadia controller is KeyCode 11 in the Rewire.JoyStick that is being used by TravellersRest.");
-            
+
+            _modRequiredHotKey = Config.Bind("QuickWaterWell", "hotkey required", false,
+                "It is necessary to hold down the hotkey to activate the mod");
+
+            //_logger = Logger;
+
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         }
 
@@ -71,6 +80,10 @@ namespace QuickWaterWell
         [HarmonyPostfix]
         static void MouseUpPrefix(Well __instance)
         {
+            /*if (_logger != null)
+            {
+                _logger.LogInfo("MouseUpPrefix (Well)");
+            }*/
             bool repeat = ModTrigger(1);
             var emptyBucket = _commonReferences?.bucketItem;
 
